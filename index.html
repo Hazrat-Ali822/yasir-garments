@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Yasir Garments — Inventory & Billing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#9D3C6D" />
+<meta name="description" content="Yasir Garments — Inventory & Billing System" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Yasir Garments" />
+<style>
+  :root{
+    --bg:#F7F2F5; --surface:#FFFFFF; --surface-2:#FBF6F9;
+    --ink:#312A35; --ink-soft:#7A6E80; --ink-faint:#A99FAE;
+    --brand:#9D3C6D; --brand-dark:#7C2C55; --brand-soft:#F4E3EC;
+    --sky:#4C97B6; --sky-soft:#E3F0F5;
+    --mint:#3FA57C; --mint-soft:#E1F2EA;
+    --peach:#DE8159; --peach-soft:#FBEBE1;
+    --danger:#CC4B47; --danger-soft:#FBE6E5;
+    --gold:#C79A3B;
+    --border:#ECE1E8; --border-2:#E3D6DE;
+    --shadow:0 1px 2px rgba(49,42,53,.04), 0 6px 20px rgba(49,42,53,.06);
+    --shadow-lg:0 12px 40px rgba(49,42,53,.16);
+    --r:14px; --r-sm:10px;
+    --display:'Fraunces', Georgia, 'Times New Roman', serif;
+    --ui:'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--ui);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+  button{cursor:pointer;border:none;background:none}
+  a{color:inherit}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:8px}
+
+  /* ---------- App shell ---------- */
+  .app-shell{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+  .sidebar{background:linear-gradient(180deg,#43213A 0%,#2D1628 100%);color:#F3E7EE;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+  .brand{padding:22px 20px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .brand .mark{width:42px;height:42px;border-radius:12px;background:linear-gradient(140deg,#C75A8C,#8E2E5E);display:grid;place-items:center;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+  .brand .mark svg{width:24px;height:24px}
+  .brand h1{font-family:var(--display);font-size:19px;font-weight:600;letter-spacing:.2px;line-height:1.05}
+  .brand p{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:#D8A9C2;margin-top:2px}
+  .nav{padding:14px 12px;flex:1;overflow-y:auto}
+  .nav-label{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:#B07F9B;padding:8px 12px 6px}
+  .nav-item{width:100%;display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:11px;color:#E4CEDC;font-weight:500;font-size:13.5px;transition:.16s;text-align:left}
+  .nav-item svg{width:19px;height:19px;flex-shrink:0;opacity:.85}
+  .nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+  .nav-item.active{background:linear-gradient(100deg,#C75A8C,#9D3C6D);color:#fff;box-shadow:0 6px 16px rgba(157,60,109,.35)}
+  .nav-item.active svg{opacity:1}
+  .nav-badge{margin-left:auto;background:rgba(255,255,255,.18);color:#fff;font-size:11px;font-weight:700;padding:1px 8px;border-radius:20px;min-width:20px;text-align:center}
+  .nav-item.active .nav-badge{background:rgba(255,255,255,.25)}
+  .side-foot{padding:14px 16px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#B898AB}
+  .sync-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#7d6; margin-right:6px;vertical-align:middle}
+  .sync-dot.off{background:#c97}
+  .sync-dot.err{background:#e55}
+
+  .main{display:flex;flex-direction:column;min-width:0}
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 26px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:20}
+  .topbar h2{font-family:var(--display);font-size:21px;font-weight:600}
+  .topbar .sub{color:var(--ink-soft);font-size:12.5px;margin-top:1px}
+  .topbar .spacer{flex:1}
+  .content{padding:26px;max-width:1200px;width:100%}
+
+  /* ---------- Buttons ---------- */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 16px;border-radius:var(--r-sm);font-weight:600;font-size:13.5px;transition:.16s;white-space:nowrap}
+  .btn svg{width:17px;height:17px}
+  .btn-primary{background:linear-gradient(100deg,#A8417A,#8E2E5E);color:#fff;box-shadow:0 4px 14px rgba(142,46,94,.28)}
+  .btn-primary:hover{filter:brightness(1.06);box-shadow:0 6px 18px rgba(142,46,94,.34)}
+  .btn-ghost{background:var(--surface);border:1px solid var(--border-2);color:var(--ink)}
+  .btn-ghost:hover{background:var(--surface-2);border-color:var(--brand)}
+  .btn-soft{background:var(--brand-soft);color:var(--brand-dark)}
+  .btn-soft:hover{background:#efd5e3}
+  .btn-danger{background:var(--danger-soft);color:var(--danger)}
+  .btn-danger:hover{background:#f7d5d3}
+  .btn-sky{background:var(--sky);color:#fff}
+  .btn-sky:hover{filter:brightness(1.05)}
+  .btn-sm{padding:7px 11px;font-size:12.5px;border-radius:9px}
+  .btn-icon{padding:8px;width:34px;height:34px}
+  .btn[disabled]{opacity:.5;pointer-events:none}
+  .btn-block{width:100%}
+  .btn:active{transform:translateY(1px)}
+  .prod-card:active{transform:scale(.98)}
+  .qty-step button:active{transform:scale(.9)}
+
+  /* ---------- Cards & stats ---------- */
+  .grid{display:grid;gap:16px}
+  .stat-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow)}
+  .card-pad{padding:18px 20px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .stat .ico{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;margin-bottom:12px}
+  .stat .ico svg{width:20px;height:20px}
+  .stat .label{font-size:12px;color:var(--ink-soft);font-weight:600;letter-spacing:.2px}
+  .stat .value{font-size:25px;font-weight:800;letter-spacing:-.5px;margin-top:2px;font-variant-numeric:tabular-nums}
+  .stat .value small{font-size:14px;font-weight:700;color:var(--ink-soft)}
+  .stat .hint{font-size:11.5px;color:var(--ink-faint);margin-top:3px}
+  .tint-brand{background:var(--brand-soft);color:var(--brand)}
+  .tint-sky{background:var(--sky-soft);color:var(--sky)}
+  .tint-mint{background:var(--mint-soft);color:var(--mint)}
+  .tint-peach{background:var(--peach-soft);color:var(--peach)}
+  .tint-gold{background:#F7EFD8;color:var(--gold)}
+
+  .section-head{display:flex;align-items:center;gap:12px;margin:26px 0 14px}
+  .section-head h3{font-family:var(--display);font-size:17px;font-weight:600}
+  .section-head .spacer{flex:1}
+  .first-head{margin-top:6px}
+
+  /* ---------- Tables ---------- */
+  .table-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{text-align:left;padding:13px 16px;background:var(--surface-2);color:var(--ink-soft);font-weight:700;font-size:11.5px;letter-spacing:.4px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+  tbody td{padding:13px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--surface-2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .prod-name{font-weight:600;color:var(--ink)}
+  .prod-meta{font-size:11.5px;color:var(--ink-faint)}
+  .row-actions{display:flex;gap:6px;justify-content:flex-end}
+
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:30px;font-size:11.5px;font-weight:700;letter-spacing:.2px}
+  .b-in{background:var(--mint-soft);color:#2c7a5b}
+  .b-low{background:var(--peach-soft);color:#a85a2f}
+  .b-out{background:var(--danger-soft);color:var(--danger)}
+  .b-cat{background:var(--brand-soft);color:var(--brand-dark)}
+
+  .empty{text-align:center;padding:48px 20px;color:var(--ink-faint)}
+  .empty svg{width:46px;height:46px;opacity:.4;margin-bottom:12px}
+  .empty p{font-size:14px}
+
+  /* ---------- Forms ---------- */
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px}
+  .field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1px solid var(--border-2);border-radius:var(--r-sm);background:var(--surface);transition:.15s}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  .field textarea{resize:vertical;min-height:70px}
+  .field .hint{font-size:11px;color:var(--ink-faint);margin-top:5px}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .search-bar{position:relative}
+  .search-bar svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--ink-faint)}
+  .search-bar input{padding-left:40px}
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{position:fixed;inset:0;background:rgba(45,22,40,.5);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:100;padding:18px}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--surface);border-radius:18px;box-shadow:var(--shadow-lg);width:100%;max-width:520px;max-height:92vh;overflow:auto;animation:pop .2s ease}
+  .modal.wide{max-width:560px}
+  @keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+  .modal-head{padding:20px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;position:sticky;top:0;background:var(--surface);z-index:2}
+  .modal-head h3{font-family:var(--display);font-size:18px;font-weight:600;flex:1}
+  .modal-body{padding:22px}
+  .modal-foot{padding:16px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface)}
+  .x-btn{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--ink-soft)}
+  .x-btn:hover{background:var(--surface-2);color:var(--ink)}
+
+  /* ---------- POS ---------- */
+  .pos{display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:start}
+  .pos-products{max-height:calc(100vh - 220px);overflow-y:auto}
+  .prod-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px;margin-top:14px}
+  .prod-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px;cursor:pointer;transition:.15s;box-shadow:var(--shadow)}
+  .prod-card:hover{border-color:var(--brand);transform:translateY(-2px);box-shadow:0 8px 20px rgba(157,60,109,.14)}
+  .prod-card .pc-cat{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--brand)}
+  .prod-card .pc-name{font-weight:700;font-size:13.5px;margin:4px 0 2px;line-height:1.25}
+  .prod-card .pc-size{font-size:11.5px;color:var(--ink-faint)}
+  .prod-card .pc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+  .prod-card .pc-price{font-weight:800;font-size:15px}
+  .prod-card .pc-stock{font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px}
+  .prod-card.dim{opacity:.5;pointer-events:none}
+
+  .cart{position:sticky;top:96px}
+  .cart-head{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+  .cart-head h3{font-family:var(--display);font-size:16px;font-weight:600;flex:1}
+  .cart-items{max-height:300px;overflow-y:auto;padding:6px 0}
+  .cart-row{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border)}
+  .cart-row:last-child{border-bottom:none}
+  .ci-info{flex:1;min-width:0}
+  .ci-name{font-weight:600;font-size:13px;line-height:1.2}
+  .ci-price{font-size:11.5px;color:var(--ink-faint)}
+  .qty-step{display:flex;align-items:center;gap:0;border:1px solid var(--border-2);border-radius:8px;overflow:hidden}
+  .qty-step button{width:26px;height:28px;display:grid;place-items:center;background:var(--surface-2);color:var(--brand);font-weight:800}
+  .qty-step button:hover{background:var(--brand-soft)}
+  .qty-step span{width:30px;text-align:center;font-weight:700;font-size:13px}
+  .ci-total{font-weight:700;font-size:13px;width:64px;text-align:right;font-variant-numeric:tabular-nums}
+  .ci-del{color:var(--ink-faint);width:24px;height:24px;display:grid;place-items:center;border-radius:6px}
+  .ci-del:hover{color:var(--danger);background:var(--danger-soft)}
+  .cart-foot{padding:16px 18px;border-top:1px solid var(--border)}
+  .sum-line{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;color:var(--ink-soft)}
+  .sum-line.total{font-size:19px;font-weight:800;color:var(--ink);border-top:1px dashed var(--border-2);padding-top:11px;margin-top:4px}
+  .cart-empty{padding:40px 20px;text-align:center;color:var(--ink-faint)}
+  .cart-empty svg{width:40px;height:40px;opacity:.35;margin-bottom:10px}
+
+  .pill-toggle{display:flex;gap:6px;background:var(--surface-2);padding:4px;border-radius:10px}
+  .pill-toggle button{flex:1;padding:7px;border-radius:7px;font-weight:600;font-size:12.5px;color:var(--ink-soft)}
+  .pill-toggle button.on{background:var(--surface);color:var(--brand-dark);box-shadow:var(--shadow)}
+
+  /* ---------- Slip ---------- */
+  .slip{font-family:'Plus Jakarta Sans',monospace;width:var(--slip-w,300px);margin:0 auto;background:#fff;color:#1c1620;padding:20px 18px}
+  .slip-top{text-align:center;border-bottom:2px dashed #d8c6d2;padding-bottom:12px;margin-bottom:12px}
+  .slip-top .sname{font-family:var(--display);font-size:22px;font-weight:700;color:var(--brand-dark);letter-spacing:.3px}
+  .slip-top .stag{font-size:10.5px;color:#8a7a85;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+  .slip-top .saddr{font-size:11px;color:#5d5560;margin-top:7px;line-height:1.45}
+  .slip-meta{font-size:11.5px;display:flex;justify-content:space-between;margin-bottom:3px;color:#4a434f}
+  .slip-meta b{color:#1c1620}
+  .slip-items{margin:12px 0;border-top:1px dashed #d8c6d2;border-bottom:1px dashed #d8c6d2;padding:10px 0}
+  .slip-it{margin-bottom:9px}
+  .slip-it .it-top{display:flex;justify-content:space-between;font-size:12.5px;font-weight:700}
+  .slip-it .it-sub{font-size:11px;color:#7a6f80;display:flex;justify-content:space-between;margin-top:1px}
+  .slip-sum{font-size:12.5px}
+  .slip-sum .sl{display:flex;justify-content:space-between;margin-bottom:4px;color:#4a434f}
+  .slip-sum .sl.gt{font-size:16px;font-weight:800;color:#1c1620;border-top:2px solid #1c1620;padding-top:7px;margin-top:6px}
+  .slip-policy{margin-top:14px;border-top:1px dashed #d8c6d2;padding-top:11px;font-size:10px;color:#6a6070;line-height:1.5}
+  .slip-policy b{display:block;color:var(--brand-dark);font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px}
+  .slip-thanks{text-align:center;margin-top:14px;font-size:12px;color:var(--brand-dark);font-weight:700}
+  .slip-thanks .ur{font-family:var(--display);font-size:13px}
+  .slip-foot{text-align:center;font-size:9.5px;color:#a99fae;margin-top:10px}
+  .slip.ret .sname{color:var(--danger)}
+  .ret-tag{background:var(--danger-soft);color:var(--danger);font-weight:800;font-size:11px;letter-spacing:1.5px;padding:3px 10px;border-radius:6px;display:inline-block;margin-top:8px}
+
+  /* ---------- Returns lookup ---------- */
+  .ret-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}
+  .ret-item:last-child{border-bottom:none}
+  .ret-item .ri-info{flex:1}
+  .ret-item .ri-name{font-weight:600}
+  .ret-item .ri-meta{font-size:11.5px;color:var(--ink-faint)}
+  .alert{padding:12px 14px;border-radius:11px;font-size:12.5px;display:flex;gap:9px;align-items:flex-start;margin-bottom:14px}
+  .alert svg{width:18px;height:18px;flex-shrink:0;margin-top:1px}
+  .alert-warn{background:var(--peach-soft);color:#9a5128}
+  .alert-ok{background:var(--mint-soft);color:#2c7a5b}
+  .alert-info{background:var(--sky-soft);color:#2c6d85}
+
+  /* ---------- Toast ---------- */
+  .toast-wrap{position:fixed;bottom:22px;right:22px;z-index:200;display:flex;flex-direction:column;gap:10px}
+  .toast{background:var(--ink);color:#fff;padding:13px 18px;border-radius:12px;font-size:13.5px;font-weight:500;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;animation:slideIn .25s ease;max-width:330px}
+  .toast svg{width:18px;height:18px;flex-shrink:0}
+  .toast.ok{background:#2c7a5b}.toast.err{background:var(--danger)}.toast.info{background:var(--sky)}
+  @keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+
+  .help-box{background:var(--sky-soft);border:1px solid #c5e0ea;border-radius:var(--r);padding:0;overflow:hidden;margin-top:12px}
+  .help-toggle{width:100%;padding:14px 18px;display:flex;align-items:center;gap:10px;font-weight:700;color:#2c6d85;text-align:left}
+  .help-toggle svg{width:18px;height:18px}
+  .help-toggle .chev{margin-left:auto;transition:.2s}
+  .help-box.open .chev{transform:rotate(180deg)}
+  .help-content{padding:0 18px 18px 18px;display:none;font-size:13px;color:#2c5d72;line-height:1.7}
+  .help-box.open .help-content{display:block}
+  .help-content ol{padding-left:20px}
+  .help-content li{margin-bottom:9px}
+  .help-content code{background:#fff;padding:2px 7px;border-radius:6px;font-size:12px;border:1px solid #c5e0ea;color:var(--brand-dark);font-weight:600}
+  .help-content b{color:#1c4858}
+
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:30px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--ink-soft)}
+
+  /* ---------- Mobile ---------- */
+  .mobile-bar{display:none}
+  @media(max-width:920px){
+    .app-shell{grid-template-columns:1fr}
+    .sidebar{display:none}
+    .pos{grid-template-columns:1fr}
+    .cart{position:static}
+    .content{padding:18px 16px 90px}
+    .topbar{padding:14px 16px}
+    .form-row{grid-template-columns:1fr}
+    .mobile-bar{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:50;padding:7px 6px 9px;justify-content:space-around;box-shadow:0 -4px 20px rgba(49,42,53,.07)}
+    .mb-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;color:var(--ink-faint);font-size:10px;font-weight:600;border-radius:10px}
+    .mb-item svg{width:21px;height:21px}
+    .mb-item.active{color:var(--brand)}
+  }
+
+  /* ---------- Print ---------- */
+  #print-root{display:none}
+  @media print{
+    body{background:#fff}
+    .app-shell,.modal-overlay,.toast-wrap,.mobile-bar{display:none !important}
+    #print-root{display:block}
+    .slip{width:auto;max-width:320px}
+    /* Thermal receipt rolls (58mm / 80mm): black ink only, monospace, full-width */
+    body.thermal #print-root .slip{margin:0 !important;padding:1.5mm 2mm !important;font-family:'Courier New','Roboto Mono',monospace;color:#000 !important}
+    body.thermal #print-root .slip *{color:#000 !important}
+    body.thermal #print-root .slip-top{border-bottom:1px dashed #000 !important;padding-bottom:6px !important;margin-bottom:6px !important}
+    body.thermal #print-root .sname{font-family:'Courier New',monospace !important;font-size:15px !important;font-weight:700 !important;letter-spacing:0 !important}
+    body.thermal #print-root .stag{font-size:9px !important;letter-spacing:.5px !important}
+    body.thermal #print-root .saddr{font-size:9.5px !important;margin-top:4px !important}
+    body.thermal #print-root .slip-meta{font-size:10px !important;margin-bottom:1px !important}
+    body.thermal #print-root .slip-items{border-top:1px dashed #000 !important;border-bottom:1px dashed #000 !important;padding:5px 0 !important;margin:6px 0 !important}
+    body.thermal #print-root .slip-it{margin-bottom:5px !important}
+    body.thermal #print-root .slip-it .it-top{font-size:10.5px !important}
+    body.thermal #print-root .slip-it .it-sub{font-size:9px !important}
+    body.thermal #print-root .slip-sum{font-size:10.5px !important}
+    body.thermal #print-root .slip-sum .gt{font-size:13px !important;border-top:1px solid #000 !important;padding-top:5px !important}
+    body.thermal #print-root .slip-policy{border-top:1px dashed #000 !important;font-size:8px !important;padding-top:5px !important;margin-top:6px !important}
+    body.thermal #print-root .slip-policy b{font-size:8.5px !important}
+    body.thermal #print-root .slip-thanks{font-size:10px !important;margin-top:6px !important}
+    body.thermal #print-root .slip-thanks .ur{font-size:11px !important}
+    body.thermal #print-root .slip-foot{font-size:7.5px !important;margin-top:5px !important}
+  }
+  .view{display:none;animation:fade .25s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ===== Auth / Login ===== */
+  .auth-screen{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:20px;
+    background:radial-gradient(120% 120% at 0% 0%,#5A2A4C 0%,#3A1C33 45%,#2D1628 100%)}
+  .auth-screen.show{display:flex}
+  .auth-card{width:100%;max-width:400px;background:var(--surface);border-radius:22px;padding:34px 30px;
+    box-shadow:0 30px 70px rgba(20,8,18,.5);animation:authpop .35s cubic-bezier(.2,.8,.3,1)}
+  @keyframes authpop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+  .auth-mark{width:62px;height:62px;border-radius:18px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#C75A8C,#7C2C55);box-shadow:0 10px 24px rgba(157,60,109,.4)}
+  .auth-card h2{font-family:var(--display);font-size:23px;text-align:center;color:var(--ink);margin-bottom:4px}
+  .auth-card .auth-sub{text-align:center;color:var(--ink-soft);font-size:13px;margin-bottom:22px}
+  .auth-card .field{margin-bottom:14px}
+  .auth-foot{margin-top:18px;text-align:center;font-size:12.5px;color:var(--ink-soft)}
+  .auth-foot a{color:var(--brand);font-weight:600;cursor:pointer}
+  .pin-input{letter-spacing:.18em}
+  .role-pick{display:flex;gap:10px;margin-bottom:14px}
+  .role-pick label{flex:1;border:1.5px solid var(--border-2);border-radius:12px;padding:11px 12px;cursor:pointer;text-align:center;font-size:13px;font-weight:600;color:var(--ink-soft);transition:.15s}
+  .role-pick input{display:none}
+  .role-pick input:checked + label{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-dark)}
+
+  /* ===== User chip + staff ===== */
+  .user-chip{display:flex;align-items:center;gap:9px;padding:6px 8px 6px 6px;border:1px solid var(--border);border-radius:999px;background:var(--surface)}
+  .user-av{width:30px;height:30px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;background:linear-gradient(135deg,#C75A8C,#7C2C55)}
+  .user-chip .uc-name{font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.1}
+  .user-chip .uc-role{font-size:10.5px;color:var(--ink-soft);text-transform:capitalize}
+  .role-tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;text-transform:capitalize}
+  .role-tag.admin{background:var(--brand-soft);color:var(--brand-dark)}
+  .role-tag.cashier{background:var(--sky-soft);color:#2C6E8A}
+  .staff-row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--border)}
+  .staff-row:last-child{border-bottom:none}
+  .side-user{margin-top:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:9px}
+  .side-user .su-av{width:32px;height:32px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;background:linear-gradient(135deg,#C75A8C,#7C2C55)}
+  .side-user .su-name{font-size:12.5px;font-weight:700;color:#fff;line-height:1.15}
+  .side-user .su-role{font-size:10.5px;color:#C9A9BC;text-transform:capitalize}
+  .icon-btn{width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);cursor:pointer}
+  .icon-btn:hover{color:var(--brand);border-color:var(--brand)}
+  .logout-btn{margin-left:auto;background:transparent;border:none;color:#E4A9C6;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600}
+  .logout-btn:hover{color:#fff}
+  .menu-pop{display:none;position:absolute;right:0;top:calc(100% + 8px);background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 14px 34px rgba(49,42,53,.16);padding:7px;min-width:184px;z-index:60}
+  .menu-pop.open{display:block}
+  .menu-item{width:100%;display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;font-size:13px;font-weight:600;color:var(--ink);text-align:left;cursor:pointer;background:none;border:none}
+  .menu-item:hover{background:var(--surface-2)}
+  .menu-item svg{width:17px;height:17px;opacity:.7}
+  .menu-item.danger{color:var(--danger)}
+  .menu-sep{height:1px;background:var(--border);margin:5px 6px}
+  @media(max-width:560px){ .user-chip .uc-meta{display:none} }
+  .edit-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#FFF3E0;border:1px solid #F0C97A;color:#8A5A1A;border-radius:10px;padding:8px 11px;font-size:12.5px;font-weight:600;margin-bottom:10px}
+  .edit-banner b{color:#6B4413}
+  .edit-banner button{background:#8A5A1A;color:#fff;border:none;border-radius:7px;padding:5px 11px;font-size:11.5px;font-weight:700;cursor:pointer;flex:0 0 auto}
+  .edit-banner button:hover{background:#6B4413}
+  .date-filter{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .date-presets{display:flex;flex-wrap:wrap;gap:6px}
+  .dp{padding:7px 13px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--ink-soft);font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s}
+  .dp:hover{border-color:var(--brand);color:var(--brand)}
+  .dp.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .date-custom{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft)}
+  .date-custom input[type=date]{border:1px solid var(--border);border-radius:9px;padding:7px 10px;font-size:12.5px;color:var(--ink);background:var(--surface);font-family:inherit}
+</style>
+<style id="pageStyle"></style>
+</head>
+<body>
+<!-- ===== Auth overlay (login / first-run owner setup) ===== -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-mark">
+      <svg viewBox="0 0 24 24" fill="none" width="30" height="30"><path d="M8 3 6 6l-3 1.5L4.5 11 6 10v10h12V10l1.5 1L21 7.5 18 6l-2-3-2 2.2a3 3 0 0 1-4 0L8 3Z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    </div>
+    <!-- Login -->
+    <div id="authLogin">
+      <h2>Welcome back</h2>
+      <p class="auth-sub" id="authShopName">Yasir Garments</p>
+      <div class="field"><label>Username</label><input id="logUser" autocomplete="username" placeholder="username" onkeydown="if(event.key==='Enter')document.getElementById('logPass').focus()"></div>
+      <div class="field"><label>Password / PIN</label><input id="logPass" type="password" class="pin-input" autocomplete="current-password" placeholder="••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-primary btn-block" style="padding:12px" onclick="doLogin()">Login</button>
+    </div>
+    <!-- First run: create owner -->
+    <div id="authSetup" style="display:none">
+      <h2>Owner account banayein</h2>
+      <p class="auth-sub">Pehli baar setup — apna admin account banayein</p>
+      <div class="field"><label>Aapka naam</label><input id="suName" placeholder="e.g. Yasir"></div>
+      <div class="field"><label>Username</label><input id="suUser" placeholder="e.g. yasir" autocapitalize="none"></div>
+      <div class="form-row">
+        <div class="field"><label>Password / PIN</label><input id="suPass" type="password" class="pin-input" placeholder="min 4"></div>
+        <div class="field"><label>Dobara likhein</label><input id="suPass2" type="password" class="pin-input" placeholder="confirm" onkeydown="if(event.key==='Enter')createOwner()"></div>
+      </div>
+      <button class="btn btn-primary btn-block" style="padding:12px" onclick="createOwner()">Create account &amp; start</button>
+    </div>
+  </div>
+</div>
+<div class="app-shell">
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M8 3 6 6l-3 1.5L4.5 11 6 10v10h12V10l1.5 1L21 7.5 18 6l-2-3-2 2.2a3 3 0 0 1-4 0L8 3Z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <h1 id="brandName">Yasir Garments</h1>
+        <p>Baby Suits & Wear</p>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">Main</div>
+      <button class="nav-item active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 13h6V4H4v9Zm10 7h6V11h-6v9ZM4 20h6v-5H4v5ZM14 9h6V4h-6v5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-view="sale">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M3 4h2l2.4 12.3a2 2 0 0 0 2 1.7h7.7a2 2 0 0 0 2-1.6L22 8H6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.5" cy="20.5" r="1.5" fill="currentColor"/><circle cx="18" cy="20.5" r="1.5" fill="currentColor"/></svg>
+        New Sale
+      </button>
+      <button class="nav-item" data-view="inventory">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M3.3 7 12 3l8.7 4-8.7 4-8.7-4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.3 7v10l8.7 4 8.7-4V7M12 11v10" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Inventory
+        <span class="nav-badge" id="navInvCount">0</span>
+      </button>
+      <button class="nav-item" data-view="returns">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M9 14 4 9l5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9h11a5 5 0 0 1 5 5v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Returns
+      </button>
+      <div class="nav-label" style="margin-top:8px">Insights</div>
+      <button class="nav-item" data-view="reports">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Reports
+      </button>
+      <button class="nav-item" data-view="settings">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M19.4 13a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7.6 1.6 1.6 0 0 0-1.5 1.1v.2a2 2 0 0 1-4 0v-.1A1.6 1.6 0 0 0 7.5 20a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-.6-2.7 1.6 1.6 0 0 0-1.1-1.5H1a2 2 0 0 1 0-4h.1A1.6 1.6 0 0 0 2.6 7.5a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H7.5a1.6 1.6 0 0 0 1-1.5V1a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V7.5a1.6 1.6 0 0 0 1.5 1H23a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z" stroke="currentColor" stroke-width="1.3"/></svg>
+        Settings
+      </button>
+      <button class="nav-item" data-view="users" id="navStaff">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M16 19v-2a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM20 19v-2a3 3 0 0 0-2.3-2.9M16 4.1a3 3 0 0 1 0 5.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Staff
+      </button>
+    </nav>
+    <div class="side-foot">
+      <span id="syncStatus"><span class="sync-dot off"></span> Local storage only</span>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h2 id="pageTitle">Dashboard</h2>
+        <div class="sub" id="pageSub">Welcome back</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" id="topAction" onclick="go('sale')">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        New Sale
+      </button>
+      <div style="position:relative;margin-left:10px">
+        <button class="user-chip" id="userChip" onclick="toggleUserMenu(event)">
+          <span class="user-av" id="userAv">?</span>
+          <span class="uc-meta"><span class="uc-name" id="userName">—</span><br><span class="uc-role" id="userRole"></span></span>
+          <svg viewBox="0 0 24 24" fill="none" width="14" height="14" style="opacity:.5"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="menu-pop" id="userMenu">
+          <button class="menu-item" id="menuStaff" onclick="go('users');closeUserMenu()">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M16 19v-2a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM20 19v-2a3 3 0 0 0-2.3-2.9M16 4.1a3 3 0 0 1 0 5.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Staff / Users
+          </button>
+          <button class="menu-item" id="menuSettings" onclick="go('settings');closeUserMenu()">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.3-2.5h-4l-.3 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L4 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5a7 7 0 0 0 .1-1Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+            Settings
+          </button>
+          <div class="menu-sep" id="menuSep"></div>
+          <button class="menu-item danger" onclick="logout()">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+    <div class="content">
+
+      <!-- ====== DASHBOARD ====== -->
+      <section class="view active" id="view-dashboard"></section>
+
+      <!-- ====== INVENTORY ====== -->
+      <section class="view" id="view-inventory">
+        <div class="section-head first-head">
+          <h3>Stock List</h3>
+          <div class="spacer"></div>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV('inventory')">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Export
+          </button>
+          <button class="btn btn-primary" onclick="openProductForm()">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Add Product
+          </button>
+        </div>
+        <div class="card card-pad" style="margin-bottom:16px">
+          <div class="search-bar">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            <input id="invSearch" placeholder="Search by name, category, or product ID…" oninput="renderInventory()">
+          </div>
+        </div>
+        <div id="invTable"></div>
+      </section>
+
+      <!-- ====== NEW SALE ====== -->
+      <section class="view" id="view-sale">
+        <div class="pos">
+          <div class="pos-products">
+            <div class="card card-pad">
+              <div class="search-bar">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                <input id="saleSearch" placeholder="Search ya barcode scan… (Enter = add)" oninput="renderSaleProducts()" onkeydown="if(event.key==='Enter')quickAddFromSearch()">
+              </div>
+            </div>
+            <div class="prod-list" id="saleProducts"></div>
+          </div>
+          <div class="card cart">
+            <div class="cart-head">
+              <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M3 4h2l2.4 12.3a2 2 0 0 0 2 1.7h7.7a2 2 0 0 0 2-1.6L22 8H6" stroke="var(--brand)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <h3>Current Sale</h3>
+              <button class="btn btn-sm btn-danger" onclick="clearCart()" id="clearCartBtn" style="display:none">Clear</button>
+            </div>
+            <div class="edit-banner" id="editBanner" style="display:none"></div>
+            <div class="cart-items" id="cartItems"></div>
+            <div class="cart-foot" id="cartFoot" style="display:none">
+              <div class="form-row" style="margin-bottom:12px">
+                <div class="field" style="margin:0">
+                  <label>Customer name</label>
+                  <input id="custName" placeholder="Walk-in">
+                </div>
+                <div class="field" style="margin:0">
+                  <label>Phone</label>
+                  <input id="custPhone" placeholder="Optional">
+                </div>
+              </div>
+              <div class="field" style="margin-bottom:12px">
+                <label>Discount</label>
+                <div style="display:flex;gap:8px">
+                  <input id="discVal" type="number" min="0" value="0" oninput="renderCart()" style="flex:1">
+                  <div class="pill-toggle" style="width:130px">
+                    <button id="discRs" class="on" onclick="setDiscType('rs')">Rs</button>
+                    <button id="discPc" onclick="setDiscType('pc')">%</button>
+                  </div>
+                </div>
+              </div>
+              <div class="sum-line"><span>Subtotal</span><span id="sumSub">Rs 0</span></div>
+              <div class="sum-line" id="sumDiscLine" style="display:none"><span>Discount</span><span id="sumDisc">- Rs 0</span></div>
+              <div class="sum-line" id="sumTaxLine" style="display:none"><span id="taxLabel">Tax</span><span id="sumTax">Rs 0</span></div>
+              <div class="sum-line total"><span>Total</span><span id="sumTotal">Rs 0</span></div>
+              <div class="field" style="margin:12px 0 0">
+                <label>Cash received (optional)</label>
+                <input id="cashRecv" type="number" min="0" placeholder="e.g. 1000" oninput="renderCart()">
+              </div>
+              <div class="sum-line" id="changeLine" style="display:none;margin-top:10px;font-weight:700;color:var(--mint)"><span>Change wapis</span><span id="sumChange">Rs 0</span></div>
+              <div class="sum-line" id="shortLine" style="display:none;margin-top:10px;font-weight:700;color:var(--danger)"><span>Kam paisay</span><span id="sumShort">Rs 0</span></div>
+              <button class="btn btn-primary btn-block" id="saleBtn" style="margin-top:14px;padding:13px" onclick="submitSale()">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span id="saleBtnText">Complete Sale &amp; Print Slip</span>
+              </button>
+            </div>
+            <div class="cart-empty" id="cartEmpty">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 4h2l2.4 12.3a2 2 0 0 0 2 1.7h7.7a2 2 0 0 0 2-1.6L22 8H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.5" cy="20.5" r="1.5" fill="currentColor"/><circle cx="18" cy="20.5" r="1.5" fill="currentColor"/></svg>
+              <p>Cart is empty.<br>Tap a product to add it.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== RETURNS ====== -->
+      <section class="view" id="view-returns">
+        <div class="section-head first-head"><h3>Process a Return</h3></div>
+        <div class="card card-pad" style="margin-bottom:16px;max-width:560px">
+          <div class="field" style="margin:0">
+            <label>Enter invoice number</label>
+            <div style="display:flex;gap:8px">
+              <input id="retInvoice" placeholder="e.g. INV-1001" style="flex:1" onkeydown="if(event.key==='Enter')findInvoice()">
+              <button class="btn btn-primary" onclick="findInvoice()">Find</button>
+            </div>
+            <div class="hint">Customer ko jo slip di thi us par invoice number likha hota hai.</div>
+          </div>
+        </div>
+        <div id="retResult" style="max-width:560px"></div>
+      </section>
+
+      <!-- ====== REPORTS ====== -->
+      <section class="view" id="view-reports">
+        <div class="section-head first-head">
+          <h3>Reports</h3>
+        </div>
+        <div class="date-filter" id="dateFilter">
+          <div class="date-presets">
+            <button class="dp" data-range="today" onclick="setDateRange('today')">Aaj</button>
+            <button class="dp" data-range="yest" onclick="setDateRange('yest')">Kal</button>
+            <button class="dp" data-range="7" onclick="setDateRange('7')">7 din</button>
+            <button class="dp on" data-range="month" onclick="setDateRange('month')">Is mahine</button>
+            <button class="dp" data-range="year" onclick="setDateRange('year')">Is saal</button>
+            <button class="dp" data-range="all" onclick="setDateRange('all')">Sab</button>
+          </div>
+          <div class="date-custom">
+            <input id="repFrom" type="date" onchange="customDate()"><span>se</span><input id="repTo" type="date" onchange="customDate()">
+          </div>
+        </div>
+        <div id="reportsBody"></div>
+      </section>
+
+      <!-- ====== SETTINGS ====== -->
+      <section class="view" id="view-settings">
+        <div class="section-head first-head"><h3>Settings</h3></div>
+        <div class="grid" style="grid-template-columns:1fr;max-width:620px">
+
+          <div class="card card-pad">
+            <h3 style="font-family:var(--display);font-size:16px;margin-bottom:16px">Shop Details</h3>
+            <div class="form-row">
+              <div class="field"><label>Shop name</label><input id="setName"></div>
+              <div class="field"><label>Tagline</label><input id="setTag"></div>
+            </div>
+            <div class="field"><label>Address</label><input id="setAddr"></div>
+            <div class="form-row">
+              <div class="field"><label>Phone</label><input id="setPhone"></div>
+              <div class="field"><label>Currency symbol</label><input id="setCurr" maxlength="4"></div>
+            </div>
+            <div class="field"><label>Tax rate (%) — 0 if none</label><input id="setTax" type="number" min="0" step="0.1"></div>
+            <div class="field" style="margin:0"><label>Receipt / printer size</label>
+              <select id="setPaper">
+                <option value="58">58mm thermal — chhoti receipt machine</option>
+                <option value="80">80mm thermal — bari receipt machine</option>
+                <option value="a4">A4 / normal printer (full page)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="card card-pad">
+            <h3 style="font-family:var(--display);font-size:16px;margin-bottom:6px">Return Policy</h3>
+            <p style="font-size:12.5px;color:var(--ink-soft);margin-bottom:16px">Slip ke neeche print hogi aur return ke waqt check hogi.</p>
+            <div class="field"><label>Return window (days)</label><input id="setRetDays" type="number" min="0"></div>
+            <div class="field" style="margin:0"><label>Policy text</label><textarea id="setRetText"></textarea></div>
+          </div>
+
+          <div class="card card-pad">
+            <h3 style="font-family:var(--display);font-size:16px;margin-bottom:6px">Google Sheets Sync</h3>
+            <p style="font-size:12.5px;color:var(--ink-soft);margin-bottom:14px">Apna Google Apps Script Web App URL paste karein taake saara data Google Sheet me save ho.</p>
+            <div class="field" style="margin-bottom:12px">
+              <label>Web App URL</label>
+              <input id="setSheet" placeholder="https://script.google.com/macros/s/…/exec">
+            </div>
+            <div style="display:flex;gap:9px;flex-wrap:wrap">
+              <button class="btn btn-sky btn-sm" onclick="syncToSheets(true)">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Sync to Sheets now
+              </button>
+              <button class="btn btn-ghost btn-sm" onclick="restoreFromSheets()">Restore from Sheets</button>
+            </div>
+            <div class="help-box" id="helpBox">
+              <button class="help-toggle" onclick="document.getElementById('helpBox').classList.toggle('open')">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                How to connect Google Sheets (step by step)
+                <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div class="help-content">
+                <ol>
+                  <li>Open <b>sheets.google.com</b> → create a blank sheet, name it <code>Yasir Garments</code>.</li>
+                  <li>Top menu: <b>Extensions → Apps Script</b>.</li>
+                  <li>Delete any code there, paste the full <code>Code.gs</code> file I gave you, then click <b>Save</b>.</li>
+                  <li>Click <b>Deploy → New deployment</b> → gear icon → <b>Web app</b>.</li>
+                  <li>Set <b>Execute as: Me</b>, <b>Who has access: Anyone</b>, then <b>Deploy</b> and allow the permissions.</li>
+                  <li>Copy the <b>Web app URL</b> (ends with <code>/exec</code>) and paste it in the box above.</li>
+                  <li>Tap <b>Sync to Sheets now</b>. Done — every sale/return ab Sheet me save hoga.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-pad">
+            <h3 style="font-family:var(--display);font-size:16px;margin-bottom:14px">Backup &amp; Data</h3>
+            <div style="display:flex;gap:9px;flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm" onclick="exportBackup()">Download backup (.json)</button>
+              <label class="btn btn-ghost btn-sm" style="cursor:pointer">Import backup<input type="file" accept=".json" style="display:none" onchange="importBackup(this.files[0])"></label>
+              <button class="btn btn-danger btn-sm" onclick="resetAll()">Reset all data</button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-block" style="padding:13px" onclick="saveSettings()">Save Settings</button>
+        </div>
+      </section>
+
+      <!-- ====== STAFF / USERS ====== -->
+      <section class="view" id="view-users">
+        <div class="section-head first-head">
+          <h3>Staff</h3>
+          <div class="spacer"></div>
+          <button class="btn btn-primary" onclick="openUserForm()">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Add Staff
+          </button>
+        </div>
+        <div class="grid" style="grid-template-columns:1fr;max-width:620px">
+          <div class="card card-pad">
+            <p style="font-size:12.5px;color:var(--ink-soft);margin-bottom:8px">Admin sab kuch kar sakta hai. Cashier sirf <b>New Sale</b> aur <b>Returns</b> kar sakta hai — Inventory, Reports aur Settings nahi dekh sakta.</p>
+            <div id="staffList"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- Mobile bottom nav -->
+<nav class="mobile-bar">
+  <button class="mb-item active" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none"><path d="M4 13h6V4H4v9Zm10 7h6V11h-6v9ZM4 20h6v-5H4v5ZM14 9h6V4h-6v5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Home</button>
+  <button class="mb-item" data-view="inventory"><svg viewBox="0 0 24 24" fill="none"><path d="M3.3 7 12 3l8.7 4-8.7 4-8.7-4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.3 7v10l8.7 4 8.7-4V7" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Stock</button>
+  <button class="mb-item" data-view="sale"><svg viewBox="0 0 24 24" fill="none"><path d="M3 4h2l2.4 12.3a2 2 0 0 0 2 1.7h7.7a2 2 0 0 0 2-1.6L22 8H6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Sale</button>
+  <button class="mb-item" data-view="returns"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14 4 9l5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9h11a5 5 0 0 1 5 5v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Return</button>
+  <button class="mb-item" data-view="reports"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Reports</button>
+</nav>
+
+<!-- ===== Product modal ===== -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="prodModalTitle">Add Product</h3>
+      <button class="x-btn" onclick="closeModal('productModal')"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pfId">
+      <div class="form-row">
+        <div class="field"><label>Product ID</label><input id="pfCode" placeholder="auto"></div>
+        <div class="field"><label>Category</label>
+          <select id="pfCat"></select>
+        </div>
+      </div>
+      <div class="field"><label>Product name *</label><input id="pfName" placeholder="e.g. Cotton Baby Romper"></div>
+      <div class="form-row">
+        <div class="field"><label>Size</label><select id="pfSize"></select></div>
+        <div class="field"><label>Colour</label><input id="pfColor" placeholder="e.g. Pink"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Cost price</label><input id="pfCost" type="number" min="0" value="0"></div>
+        <div class="field"><label>Sale price *</label><input id="pfPrice" type="number" min="0" value="0"></div>
+      </div>
+      <div class="form-row">
+        <div class="field" style="margin:0"><label>Quantity in stock *</label><input id="pfQty" type="number" min="0" value="0"></div>
+        <div class="field" style="margin:0"><label>Low-stock alert at</label><input id="pfReorder" type="number" min="0" value="5"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('productModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Slip modal ===== -->
+<div class="modal-overlay" id="slipModal">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3 id="slipTitle">Sale Slip</h3>
+      <button class="x-btn" onclick="closeModal('slipModal')"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="modal-body" style="background:var(--surface-2)">
+      <div id="slipPreview"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('slipModal')">Close</button>
+      <button class="btn btn-primary" onclick="printSlip()">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2M6 14h12v7H6v-7Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Print / Save PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="print-root"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ===== Staff modal ===== -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="userModalTitle">Add Staff</h3>
+      <button class="x-btn" onclick="closeModal('userModal')"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ufId">
+      <div class="field"><label>Full name *</label><input id="ufName" placeholder="e.g. Ali Raza"></div>
+      <div class="field"><label>Username *</label><input id="ufUser" placeholder="e.g. ali" autocapitalize="none"></div>
+      <div class="field"><label>Role</label>
+        <div class="role-pick">
+          <input type="radio" name="ufRole" id="ufRoleCashier" value="cashier" checked><label for="ufRoleCashier">Cashier</label>
+          <input type="radio" name="ufRole" id="ufRoleAdmin" value="admin"><label for="ufRoleAdmin">Admin</label>
+        </div>
+      </div>
+      <div class="field" style="margin:0"><label id="ufPassLabel">Password / PIN *</label><input id="ufPass" type="password" class="pin-input" placeholder="min 4 characters"></div>
+      <p id="ufHint" style="font-size:11.5px;color:var(--ink-faint);margin-top:8px;display:none">Password change na karna ho to khali chhod dein.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('userModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   YASIR GARMENTS — Inventory & Billing
+   Data: localStorage (offline) + optional Google Sheets sync
+   ============================================================ */
+
+/* ---------- Robust storage (falls back to memory in preview) ---------- */
+const Store = {
+  mem:{},
+  ok:(function(){ try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return true;}catch(e){return false;} })(),
+  get(k,d){ try{ if(this.ok){const v=localStorage.getItem(k);return v?JSON.parse(v):d;} }catch(e){} return (k in this.mem)?this.mem[k]:d; },
+  set(k,v){ this.mem[k]=v; try{ if(this.ok) localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+
+const CATS = ["Baby Suit","Romper","Frock","Sweater","T-Shirt","Trouser","Set (2pc)","Set (3pc)","Cap","Booties","Mittens","Bedsheet","Towel","Blanket","Other"];
+const SIZES = ["Newborn","0-3M","3-6M","6-9M","9-12M","12-18M","18-24M","2T","3T","4T","Free Size"];
+
+const DEFAULT_SETTINGS = {
+  shopName:"Yasir Garments", tagline:"Baby Suits & Garments", address:"Main Bazaar, Lahore",
+  phone:"0300-0000000", currency:"Rs", taxRate:0, returnDays:7, sheetUrl:"", paperWidth:"58",
+  returnPolicy:"Exchange/return within 7 days with original slip. Item must be unworn, unwashed and with tags attached. Sale items are not returnable."
+};
+
+let state = {
+  products: Store.get('yg_products', null),
+  sales: Store.get('yg_sales', []),
+  returns: Store.get('yg_returns', []),
+  settings: Object.assign({}, DEFAULT_SETTINGS, Store.get('yg_settings', {})),
+  counters: Store.get('yg_counters', {invoice:1001, product:1, ret:5001}),
+  users: Store.get('yg_users', [])
+};
+let sessionUserId = Store.get('yg_session', null);
+let cart = [];
+let discType = 'rs';
+let lastSlipHTML = '';
+let editingInvoice = null;
+let repInit = false;
+
+/* ---------- Seed sample products on first run ---------- */
+if(state.products === null){
+  state.products = [
+    p("Cotton Baby Romper","Romper","0-3M","Pink",240,420,18,5),
+    p("Winter Hooded Suit","Baby Suit","6-9M","Blue",560,950,9,5),
+    p("3-Piece Frock Set","Set (3pc)","12-18M","Peach",680,1150,6,4),
+    p("Soft Knit Sweater","Sweater","9-12M","Cream",380,640,3,5),
+    p("Newborn Gift Set","Set (3pc)","Newborn","White",720,1250,12,4),
+    p("Baby Cap & Mittens","Cap","Free Size","Yellow",120,250,25,8),
+    p("Velvet Party Frock","Frock","18-24M","Maroon",890,1490,4,3),
+    p("Cotton Bodysuit","Baby Suit","3-6M","Mint",210,380,0,6)
+  ];
+  saveAll();
+}
+function p(name,cat,size,color,cost,price,qty,reorder){
+  return {id:"YG-"+String(state.counters.product++).padStart(3,'0'),name,category:cat,size,color,cost,price,qty,reorder,createdAt:Date.now()};
+}
+
+/* ---------- Persistence ---------- */
+let syncTimer=null;
+function saveAll(){
+  Store.set('yg_products',state.products);
+  Store.set('yg_sales',state.sales);
+  Store.set('yg_returns',state.returns);
+  Store.set('yg_settings',state.settings);
+  Store.set('yg_counters',state.counters);
+  Store.set('yg_users',state.users);
+  updateBadges();
+  // offline-first background sync
+  if(state.settings.sheetUrl){
+    Store.set('yg_pending', true);
+    setSyncStatus();
+    if(navigator.onLine){
+      clearTimeout(syncTimer);
+      syncTimer=setTimeout(()=>syncToSheets(false),1200);
+    }
+  }
+}
+
+/* ---------- Helpers ---------- */
+function $(id){ return document.getElementById(id); }
+function money(n){ n=Math.round((+n||0)); return state.settings.currency+" "+n.toLocaleString('en-PK'); }
+function fmtDate(ts){ const d=new Date(ts); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+function fmtTime(ts){ const d=new Date(ts); return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
+function isToday(ts){ const d=new Date(ts),n=new Date(); return d.toDateString()===n.toDateString(); }
+function isThisMonth(ts){ const d=new Date(ts),n=new Date(); return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear(); }
+function stockBadge(q,r){ if(q<=0)return '<span class="badge b-out">Out of stock</span>'; if(q<=r)return '<span class="badge b-low">Low ('+q+')</span>'; return '<span class="badge b-in">'+q+' in stock</span>'; }
+function returnedQty(invoice,pid){
+  let n=0; state.returns.forEach(r=>{ if(r.invoice===invoice) r.items.forEach(it=>{ if(it.id===pid) n+=it.qty; }); }); return n;
+}
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------- Toast ---------- */
+function toast(msg,type){
+  const t=document.createElement('div'); t.className='toast '+(type||'');
+  const ico = type==='ok'?'<path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+    : type==='err'?'<path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>'
+    : '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>';
+  t.innerHTML='<svg viewBox="0 0 24 24" fill="none">'+ico+'</svg><span>'+escapeHtml(msg)+'</span>';
+  $('toastWrap').appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(40px)';setTimeout(()=>t.remove(),250);},2800);
+}
+
+/* ---------- Navigation ---------- */
+const TITLES={dashboard:['Dashboard','Aaj ka overview'],inventory:['Inventory','Apna saara stock manage karein'],sale:['New Sale','Cart banayein aur slip nikalein'],returns:['Returns','Invoice se return process karein'],reports:['Reports','Sales aur stock ki tafseel'],settings:['Settings','Shop aur Google Sheets setup'],users:['Staff','Cashier aur admin accounts manage karein']};
+function go(view){
+  if(state.users.length && !canView(view)){ toast('Is section ka access nahi hai','err'); view=defaultView(); }
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $('view-'+view).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===view));
+  document.querySelectorAll('.mb-item').forEach(n=>n.classList.toggle('active',n.dataset.view===view));
+  $('pageTitle').textContent=TITLES[view][0]; $('pageSub').textContent=TITLES[view][1];
+  $('topAction').style.display = (view==='sale')?'none':'inline-flex';
+  if(view==='dashboard')renderDashboard();
+  if(view==='inventory')renderInventory();
+  if(view==='sale')renderSale();
+  if(view==='returns'){$('retResult').innerHTML='';$('retInvoice').value='';}
+  if(view==='reports'){ if(!repInit){ repInit=true; setDateRange('month'); } else renderReports(); }
+  if(view==='settings')renderSettings();
+  if(view==='users')renderStaff();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.view)));
+
+function updateBadges(){
+  $('navInvCount').textContent=state.products.length;
+  $('brandName').textContent=state.settings.shopName;
+  const dot = state.settings.sheetUrl ? '<span class="sync-dot"></span> Synced to Sheets' : '<span class="sync-dot off"></span> Local storage only';
+  $('syncStatus').innerHTML=dot;
+}
+
+/* ============================================================
+   AUTH + ROLES + STAFF
+   Note: yeh client-side access control hai (casual misuse rokne
+   ke liye), bank-level security nahi. Passwords device pe hashed
+   store hote hain. Strong security ke liye baad mein auth ko
+   Apps Script backend pe move kar sakte hain.
+   ============================================================ */
+const PERMS = {
+  admin:   ['dashboard','inventory','sale','returns','reports','settings','users'],
+  cashier: ['sale','returns']
+};
+function hashPass(s){ s=String(s); let h=5381; for(let i=0;i<s.length;i++){ h=((h<<5)+h)+s.charCodeAt(i); h=h&0xffffffff; } return 'h'+(h>>>0).toString(36); }
+function currentUser(){ return state.users.find(u=>u.id===sessionUserId) || null; }
+function myRole(){ const u=currentUser(); return u?u.role:'admin'; }
+function canView(view){ if(!state.users.length) return true; const u=currentUser(); if(!u) return false; return (PERMS[u.role]||[]).includes(view); }
+function defaultView(){ const allowed=PERMS[myRole()]||['dashboard']; return allowed.includes('dashboard')?'dashboard':allowed[0]; }
+function initials(name){ return (String(name||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase())||'?'; }
+
+function showAuth(){
+  if(state.users.length){ $('authLogin').style.display=''; $('authSetup').style.display='none'; $('authShopName').textContent=state.settings.shopName; setTimeout(()=>$('logUser').focus(),60); }
+  else { $('authLogin').style.display='none'; $('authSetup').style.display=''; setTimeout(()=>$('suName').focus(),60); }
+  $('authScreen').classList.add('show');
+}
+function hideAuth(){ $('authScreen').classList.remove('show'); }
+
+function createOwner(){
+  const name=$('suName').value.trim(), user=$('suUser').value.trim().toLowerCase(), pass=$('suPass').value, pass2=$('suPass2').value;
+  if(!name||!user){ toast('Naam aur username likhein','err'); return; }
+  if(pass.length<4){ toast('Password kam az kam 4 characters','err'); return; }
+  if(pass!==pass2){ toast('Password match nahi karta','err'); return; }
+  const u={ id:'U'+Date.now().toString(36), name, username:user, role:'admin', pass:hashPass(pass), createdAt:Date.now() };
+  state.users.push(u); sessionUserId=u.id; Store.set('yg_session',sessionUserId);
+  saveAll(); hideAuth(); applyRoleUI(); toast('Welcome, '+name+'!','ok'); go(defaultView());
+}
+function doLogin(){
+  const user=$('logUser').value.trim().toLowerCase(), pass=$('logPass').value;
+  const u=state.users.find(x=>x.username.toLowerCase()===user);
+  if(!u || u.pass!==hashPass(pass)){ toast('Username ya password ghalat','err'); $('logPass').value=''; return; }
+  sessionUserId=u.id; Store.set('yg_session',sessionUserId);
+  $('logUser').value=''; $('logPass').value='';
+  hideAuth(); applyRoleUI(); toast('Welcome, '+u.name+'!','ok'); go(defaultView());
+}
+function logout(){ closeUserMenu(); sessionUserId=null; Store.set('yg_session',null); showAuth(); }
+
+function toggleUserMenu(e){ if(e)e.stopPropagation(); $('userMenu').classList.toggle('open'); }
+function closeUserMenu(){ const m=$('userMenu'); if(m)m.classList.remove('open'); }
+document.addEventListener('click',e=>{ const c=$('userChip'),m=$('userMenu'); if(m&&m.classList.contains('open')&&!m.contains(e.target)&&c&&!c.contains(e.target)) m.classList.remove('open'); });
+
+function applyRoleUI(){
+  const u=currentUser();
+  const hasUsers=state.users.length>0;
+  const role = u ? u.role : 'admin';
+  const allowed = hasUsers ? (PERMS[role]||[]) : PERMS.admin;
+  if(u){ $('userChip').style.display='flex'; $('userAv').textContent=initials(u.name); $('userName').textContent=u.name; $('userRole').textContent=u.role; }
+  else { $('userChip').style.display = hasUsers?'flex':'none'; }
+  document.querySelectorAll('.nav-item[data-view]').forEach(b=>{ b.style.display = allowed.includes(b.dataset.view)?'':'none'; });
+  document.querySelectorAll('.mb-item[data-view]').forEach(b=>{ b.style.display = allowed.includes(b.dataset.view)?'':'none'; });
+  $('menuStaff').style.display = allowed.includes('users')?'flex':'none';
+  $('menuSettings').style.display = allowed.includes('settings')?'flex':'none';
+  $('menuSep').style.display = (allowed.includes('users')||allowed.includes('settings'))?'block':'none';
+}
+
+/* ---- Staff management (admin) ---- */
+function renderStaff(){
+  const me=currentUser(); const list=$('staffList');
+  if(!state.users.length){ list.innerHTML='<p style="color:var(--ink-soft);font-size:13px">Abhi koi staff account nahi.</p>'; return; }
+  list.innerHTML = state.users.map(function(u){
+    const isMe = me && u.id===me.id;
+    return '<div class="staff-row">'
+      +'<span class="user-av">'+initials(u.name)+'</span>'
+      +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px;color:var(--ink)">'+escapeHtml(u.name)+(isMe?' <span style="font-weight:500;color:var(--ink-faint);font-size:12px">(you)</span>':'')+'</div>'
+      +'<div style="font-size:12px;color:var(--ink-soft)">@'+escapeHtml(u.username)+'</div></div>'
+      +'<span class="role-tag '+u.role+'">'+u.role+'</span>'
+      +'<button class="icon-btn" title="Edit" onclick="openUserForm(\''+u.id+'\')"><svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M4 20h4L18.5 9.5a2 2 0 0 0-2.8-2.8L5 17.2V20Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>'
+      +'<button class="icon-btn" title="Delete" onclick="deleteUser(\''+u.id+'\')"><svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+      +'</div>';
+  }).join('');
+}
+function openUserForm(id){
+  const ed = state.users.find(u=>u.id===id);
+  $('ufId').value = ed?ed.id:'';
+  $('userModalTitle').textContent = ed?'Edit Staff':'Add Staff';
+  $('ufName').value = ed?ed.name:''; $('ufUser').value = ed?ed.username:'';
+  (document.querySelector('input[name="ufRole"][value="'+(ed?ed.role:'cashier')+'"]')||{}).checked=true;
+  $('ufPass').value='';
+  $('ufPassLabel').textContent = ed?'Naya password (optional)':'Password / PIN *';
+  $('ufHint').style.display = ed?'block':'none';
+  openModal('userModal');
+}
+function saveUser(){
+  const id=$('ufId').value, name=$('ufName').value.trim(), user=$('ufUser').value.trim().toLowerCase();
+  const role=document.querySelector('input[name="ufRole"]:checked').value, pass=$('ufPass').value;
+  if(!name||!user){ toast('Naam aur username zaroori hai','err'); return; }
+  if(state.users.some(u=>u.username.toLowerCase()===user && u.id!==id)){ toast('Yeh username pehle se mojood hai','err'); return; }
+  if(id){
+    const u=state.users.find(x=>x.id===id); if(!u)return;
+    if(u.role==='admin' && role!=='admin' && state.users.filter(x=>x.role==='admin').length<=1){ toast('Kam az kam ek admin zaroori hai','err'); return; }
+    if(pass && pass.length<4){ toast('Password kam az kam 4 characters','err'); return; }
+    u.name=name; u.username=user; u.role=role; if(pass) u.pass=hashPass(pass);
+  } else {
+    if(pass.length<4){ toast('Password kam az kam 4 characters','err'); return; }
+    state.users.push({ id:'U'+Date.now().toString(36), name, username:user, role, pass:hashPass(pass), createdAt:Date.now() });
+  }
+  saveAll(); closeModal('userModal'); renderStaff(); applyRoleUI(); toast('Staff saved ✓','ok');
+}
+function deleteUser(id){
+  const u=state.users.find(x=>x.id===id); if(!u)return; const me=currentUser();
+  if(me && u.id===me.id){ toast('Apne aap ko delete nahi kar sakte','err'); return; }
+  if(u.role==='admin' && state.users.filter(x=>x.role==='admin').length<=1){ toast('Yeh akhri admin hai — delete nahi ho sakta','err'); return; }
+  if(!confirm(u.name+' ka account delete karein?'))return;
+  state.users=state.users.filter(x=>x.id!==id);
+  saveAll(); renderStaff(); applyRoleUI(); toast('Staff removed','info');
+}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+function renderDashboard(){
+  const todaySales=state.sales.filter(s=>isToday(s.date));
+  const todayRev=todaySales.reduce((a,s)=>a+s.total,0);
+  const monthRev=state.sales.filter(s=>isThisMonth(s.date)).reduce((a,s)=>a+s.total,0);
+  const lowItems=state.products.filter(p=>p.qty>0&&p.qty<=p.reorder);
+  const outItems=state.products.filter(p=>p.qty<=0);
+  const invValue=state.products.reduce((a,p)=>a+p.qty*p.cost,0);
+  const hour=new Date().getHours();
+  const greet=hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
+
+  let h=`<div class="grid stat-grid first-head" style="margin-top:0">
+    ${stat('tint-mint','<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>','Today\'s Sales',money(todayRev),todaySales.length+' sales · Is mahine '+money(monthRev))}
+    ${stat('tint-brand','<path d="M3.3 7 12 3l8.7 4-8.7 4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.3 7v10l8.7 4 8.7-4V7" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>','Total Products',state.products.length,state.products.reduce((a,p)=>a+p.qty,0)+' items in stock')}
+    ${stat('tint-peach','<path d="M12 9v4M12 17h.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>','Need Reorder',lowItems.length+outItems.length,outItems.length+' out of stock')}
+    ${stat('tint-gold','<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 10h18" stroke="currentColor" stroke-width="1.6"/>','Stock Value',money(invValue),'at cost price')}
+  </div>`;
+
+  // This month + recent
+  h+=`<div class="grid" style="grid-template-columns:1.4fr 1fr;align-items:start;margin-top:18px">`;
+
+  // recent sales
+  h+=`<div><div class="section-head" style="margin-top:0"><h3>Recent Sales</h3><div class="spacer"></div>${state.sales.length?'<button class="btn btn-ghost btn-sm" onclick="go(\'reports\')">View all</button>':''}</div>`;
+  if(state.sales.length){
+    h+=`<div class="table-wrap"><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Items</th><th class="num">Total</th><th></th></tr></thead><tbody>`;
+    state.sales.slice(-6).reverse().forEach(s=>{
+      const items=s.items.reduce((a,i)=>a+i.qty,0);
+      h+=`<tr><td><span class="prod-name">${s.invoice}</span><div class="prod-meta">${fmtDate(s.date)} · ${fmtTime(s.date)}</div></td>
+        <td>${escapeHtml(s.customer||'Walk-in')}</td><td class="num">${items}</td><td class="num"><b>${money(s.total)}</b></td>
+        <td class="num">${myRole()==='admin'?`<button class="btn btn-ghost btn-sm" onclick="editSale('${s.invoice}')">Edit</button> `:''}<button class="btn btn-soft btn-sm" onclick="viewSaleSlip('${s.invoice}')">Slip</button></td></tr>`;
+    });
+    h+=`</tbody></table></div>`;
+  } else h+=emptyBox('No sales yet','Apni pehli sale "New Sale" se shuru karein.');
+  h+=`</div>`;
+
+  // low stock
+  h+=`<div><div class="section-head" style="margin-top:0"><h3>Low Stock Alert</h3></div>`;
+  const alerts=[...outItems,...lowItems].slice(0,7);
+  if(alerts.length){
+    h+=`<div class="card" style="overflow:hidden">`;
+    alerts.forEach(p=>{
+      h+=`<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border)">
+        <div style="flex:1"><div class="prod-name">${escapeHtml(p.name)}</div><div class="prod-meta">${p.category} · ${p.size}</div></div>
+        ${stockBadge(p.qty,p.reorder)}</div>`;
+    });
+    h+=`</div>`;
+  } else h+=`<div class="card card-pad" style="text-align:center;color:var(--mint);padding:32px 16px"><svg viewBox="0 0 24 24" fill="none" width="40" height="40" style="margin-bottom:8px"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p style="font-weight:600">All stock levels healthy</p></div>`;
+  h+=`</div></div>`;
+
+  $('view-dashboard').innerHTML=h;
+}
+function stat(tint,svg,label,value,hint){
+  return `<div class="stat"><div class="ico ${tint}"><svg viewBox="0 0 24 24" fill="none">${svg}</svg></div>
+    <div class="label">${label}</div><div class="value">${value}</div><div class="hint">${hint||''}</div></div>`;
+}
+function emptyBox(t,s){ return `<div class="card"><div class="empty"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><p><b>${t}</b></p><p style="font-size:12.5px;margin-top:4px">${s}</p></div></div>`; }
+
+/* ============================================================
+   INVENTORY
+   ============================================================ */
+function renderInventory(){
+  const q=($('invSearch').value||'').toLowerCase().trim();
+  let list=state.products.filter(p=>!q||p.name.toLowerCase().includes(q)||p.category.toLowerCase().includes(q)||p.id.toLowerCase().includes(q)||(p.color||'').toLowerCase().includes(q));
+  list=list.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  if(!list.length){ $('invTable').innerHTML=emptyBox(q?'No products match':'No products yet',q?'Doosra naam try karein.':'"Add Product" se apna stock add karein.'); return; }
+  let h=`<div class="table-wrap"><table><thead><tr><th>Product</th><th>ID</th><th>Size / Colour</th><th class="num">Cost</th><th class="num">Price</th><th>Status</th><th></th></tr></thead><tbody>`;
+  list.forEach(p=>{
+    h+=`<tr>
+      <td><div class="prod-name">${escapeHtml(p.name)}</div><div class="prod-meta"><span class="badge b-cat">${p.category}</span></div></td>
+      <td><span class="chip">${p.id}</span></td>
+      <td>${p.size}${p.color?' · '+escapeHtml(p.color):''}</td>
+      <td class="num">${money(p.cost)}</td>
+      <td class="num"><b>${money(p.price)}</b></td>
+      <td>${stockBadge(p.qty,p.reorder)}</td>
+      <td><div class="row-actions">
+        <button class="btn-icon btn-soft" title="Edit" onclick="openProductForm('${p.id}')"><svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
+        <button class="btn-icon btn-danger" title="Delete" onclick="deleteProduct('${p.id}')"><svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div></td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  $('invTable').innerHTML=h;
+}
+
+function openProductForm(id){
+  // build dropdowns
+  $('pfCat').innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');
+  $('pfSize').innerHTML=SIZES.map(s=>`<option>${s}</option>`).join('');
+  if(id){
+    const p=state.products.find(x=>x.id===id); if(!p)return;
+    $('prodModalTitle').textContent='Edit Product';
+    $('pfId').value=p.id; $('pfCode').value=p.id; $('pfCode').disabled=true;
+    $('pfName').value=p.name; $('pfCat').value=p.category; $('pfSize').value=p.size;
+    $('pfColor').value=p.color||''; $('pfCost').value=p.cost; $('pfPrice').value=p.price;
+    $('pfQty').value=p.qty; $('pfReorder').value=p.reorder;
+  } else {
+    $('prodModalTitle').textContent='Add Product';
+    $('pfId').value=''; $('pfCode').value=''; $('pfCode').disabled=false; $('pfCode').placeholder='auto (YG-'+String(state.counters.product).padStart(3,'0')+')';
+    $('pfName').value=''; $('pfCat').value=CATS[0]; $('pfSize').value=SIZES[1];
+    $('pfColor').value=''; $('pfCost').value=0; $('pfPrice').value=0; $('pfQty').value=0; $('pfReorder').value=5;
+  }
+  openModal('productModal'); setTimeout(()=>$('pfName').focus(),100);
+}
+function saveProduct(){
+  const name=$('pfName').value.trim();
+  if(!name){ toast('Product name likhna zaroori hai','err'); return; }
+  const price=+$('pfPrice').value||0;
+  if(price<=0){ toast('Sale price 0 se zyada honi chahye','err'); return; }
+  const editId=$('pfId').value;
+  const data={ name, category:$('pfCat').value, size:$('pfSize').value, color:$('pfColor').value.trim(),
+    cost:+$('pfCost').value||0, price, qty:+$('pfQty').value||0, reorder:+$('pfReorder').value||0 };
+  if(editId){
+    const p=state.products.find(x=>x.id===editId); Object.assign(p,data);
+    toast('Product updated','ok');
+  } else {
+    let code=$('pfCode').value.trim().replace(/['"\\<>]/g,'');
+    if(!code){ code="YG-"+String(state.counters.product++).padStart(3,'0'); }
+    else if(state.products.some(p=>p.id===code)){ toast('Yeh Product ID pehle se mojood hai','err'); return; }
+    state.products.push(Object.assign({id:code,createdAt:Date.now()},data));
+    toast('Product added','ok');
+  }
+  saveAll(); closeModal('productModal'); renderInventory();
+}
+function deleteProduct(id){
+  const p=state.products.find(x=>x.id===id);
+  if(!confirm('"'+p.name+'" ko delete karein? Yeh wapis nahi aayega.'))return;
+  state.products=state.products.filter(x=>x.id!==id);
+  saveAll(); renderInventory(); toast('Product deleted','info');
+}
+
+/* ============================================================
+   NEW SALE (POS)
+   ============================================================ */
+function renderSale(){ $('saleSearch').value=''; if($('cashRecv'))$('cashRecv').value=''; renderSaleProducts(); renderCart(); setTimeout(()=>{ const el=$('saleSearch'); if(el&&window.innerWidth>920) el.focus(); },80); }
+function quickAddFromSearch(){
+  const q=($('saleSearch').value||'').toLowerCase().trim(); if(!q)return;
+  const exact=state.products.find(p=>p.id.toLowerCase()===q);
+  const list=state.products.filter(p=>p.name.toLowerCase().includes(q)||p.category.toLowerCase().includes(q)||p.id.toLowerCase().includes(q));
+  const pick = exact || list.find(p=>{ const c=cart.find(x=>x.id===p.id); return (p.qty-(c?c.qty:0))>0; }) || list[0];
+  if(!pick){ toast('Koi matching product nahi mila','err'); return; }
+  addToCart(pick.id);
+  $('saleSearch').value=''; renderSaleProducts(); const el=$('saleSearch'); if(el)el.focus();
+}
+function renderSaleProducts(){
+  const q=($('saleSearch').value||'').toLowerCase().trim();
+  let list=state.products.filter(p=>!q||p.name.toLowerCase().includes(q)||p.category.toLowerCase().includes(q)||p.id.toLowerCase().includes(q));
+  list=list.slice().sort((a,b)=>b.qty-a.qty);
+  if(!list.length){ $('saleProducts').innerHTML='<div style="grid-column:1/-1">'+emptyBox('No products','Pehle inventory me products add karein.')+'</div>'; return; }
+  $('saleProducts').innerHTML=list.map(p=>{
+    const inCart=cart.find(c=>c.id===p.id); const avail=p.qty-(inCart?inCart.qty:0);
+    const out=avail<=0;
+    return `<div class="prod-card ${out?'dim':''}" onclick="addToCart('${p.id}')">
+      <div class="pc-cat">${p.category}</div>
+      <div class="pc-name">${escapeHtml(p.name)}</div>
+      <div class="pc-size">${p.size}${p.color?' · '+escapeHtml(p.color):''}</div>
+      <div class="pc-foot">
+        <span class="pc-price">${money(p.price)}</span>
+        <span class="pc-stock ${out?'b-out':avail<=p.reorder?'b-low':'b-in'}">${out?'Out':avail+' left'}</span>
+      </div></div>`;
+  }).join('');
+}
+function addToCart(id){
+  const p=state.products.find(x=>x.id===id); if(!p)return;
+  const c=cart.find(x=>x.id===id);
+  const inCartQty=c?c.qty:0;
+  if(inCartQty>=p.qty){ toast('Stock me sirf '+p.qty+' available hain','err'); return; }
+  if(c) c.qty++; else cart.push({id:p.id,name:p.name,size:p.size,color:p.color,price:p.price,cost:p.cost,qty:1});
+  renderCart(); renderSaleProducts();
+}
+function changeCartQty(id,d){
+  const c=cart.find(x=>x.id===id); if(!c)return;
+  const p=state.products.find(x=>x.id===id);
+  if(d>0 && c.qty>=p.qty){ toast('Stock limit reached','err'); return; }
+  c.qty+=d; if(c.qty<=0) cart=cart.filter(x=>x.id!==id);
+  renderCart(); renderSaleProducts();
+}
+function removeCart(id){ cart=cart.filter(x=>x.id!==id); renderCart(); renderSaleProducts(); }
+function clearCart(){ cart=[]; renderCart(); renderSaleProducts(); }
+function setDiscType(t){ discType=t; $('discRs').classList.toggle('on',t==='rs'); $('discPc').classList.toggle('on',t==='pc'); renderCart(); }
+
+function cartTotals(){
+  const sub=cart.reduce((a,c)=>a+c.price*c.qty,0);
+  let disc=$('discVal') ? (+$('discVal').value||0) : 0;
+  if(discType==='pc') disc=sub*Math.min(disc,100)/100;
+  disc=Math.min(disc,sub);
+  const taxable=sub-disc;
+  const tax=taxable*(state.settings.taxRate||0)/100;
+  return {sub,disc,tax,total:taxable+tax};
+}
+function renderCart(){
+  updateEditBanner();
+  const has=cart.length>0;
+  $('cartEmpty').style.display=has?'none':'block';
+  $('cartFoot').style.display=has?'block':'none';
+  $('clearCartBtn').style.display=has?'inline-flex':'none';
+  if(!has){ $('cartItems').innerHTML=''; return; }
+  $('cartItems').innerHTML=cart.map(c=>`
+    <div class="cart-row">
+      <div class="ci-info"><div class="ci-name">${escapeHtml(c.name)}</div><div class="ci-price">${c.size} · ${money(c.price)}</div></div>
+      <div class="qty-step"><button onclick="changeCartQty('${c.id}',-1)">−</button><span>${c.qty}</span><button onclick="changeCartQty('${c.id}',1)">+</button></div>
+      <div class="ci-total">${money(c.price*c.qty)}</div>
+      <button class="ci-del" onclick="removeCart('${c.id}')"><svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>`).join('');
+  const t=cartTotals();
+  $('sumSub').textContent=money(t.sub);
+  $('sumDiscLine').style.display=t.disc>0?'flex':'none'; $('sumDisc').textContent='- '+money(t.disc);
+  $('sumTaxLine').style.display=t.tax>0?'flex':'none'; $('taxLabel').textContent='Tax ('+state.settings.taxRate+'%)'; $('sumTax').textContent=money(t.tax);
+  $('sumTotal').textContent=money(t.total);
+  const cash=$('cashRecv')?(+$('cashRecv').value||0):0;
+  const cl=$('changeLine'), sl=$('shortLine');
+  if(cl&&sl){
+    if(cash>0 && cash>=t.total){ cl.style.display='flex'; sl.style.display='none'; $('sumChange').textContent=money(cash-t.total); }
+    else if(cash>0 && cash<t.total){ sl.style.display='flex'; cl.style.display='none'; $('sumShort').textContent=money(t.total-cash); }
+    else { cl.style.display='none'; sl.style.display='none'; }
+  }
+}
+function completeSale(){
+  if(!cart.length)return;
+  const t=cartTotals();
+  const invoice="INV-"+(state.counters.invoice++);
+  const me=currentUser();
+  const sale={ invoice, date:Date.now(),
+    items:cart.map(c=>({id:c.id,name:c.name,size:c.size,color:c.color,price:c.price,cost:(c.cost!=null?c.cost:0),qty:c.qty})),
+    subtotal:t.sub, discount:t.disc, tax:t.tax, total:t.total,
+    customer:$('custName').value.trim(), phone:$('custPhone').value.trim(),
+    userId:(me?me.id:null), userName:(me?me.name:'') };
+  const _cash=$('cashRecv')?(+$('cashRecv').value||0):0;
+  sale.cash=_cash; sale.change=(_cash>t.total)?(_cash-t.total):0;
+  // decrement stock
+  sale.items.forEach(it=>{ const p=state.products.find(x=>x.id===it.id); if(p)p.qty=Math.max(0,p.qty-it.qty); });
+  state.sales.push(sale); saveAll();
+  // reset
+  cart=[]; $('custName').value=''; $('custPhone').value=''; $('discVal').value=0; if($('cashRecv'))$('cashRecv').value=''; renderCart(); renderSaleProducts();
+  showSlip(buildSaleSlip(sale),'Sale Slip — '+invoice);
+  toast('Sale complete · '+invoice,'ok');
+}
+
+/* ---- Edit / update an existing bill ---- */
+function submitSale(){ if(editingInvoice) updateSale(); else completeSale(); }
+function updateEditBanner(){
+  const b=$('editBanner');
+  if(b){
+    if(editingInvoice){ b.style.display='flex'; b.innerHTML='<span>Editing bill <b>'+editingInvoice+'</b></span><button onclick="cancelEdit()">Cancel edit</button>'; }
+    else b.style.display='none';
+  }
+  const t=$('saleBtnText'); if(t) t.textContent = editingInvoice ? 'Update Bill & Print' : 'Complete Sale & Print Slip';
+}
+function editSale(invoice){
+  if(myRole()!=='admin'){ toast('Sirf admin bill edit kar sakta hai','err'); return; }
+  const s=state.sales.find(x=>x.invoice===invoice); if(!s){ toast('Bill nahi mila','err'); return; }
+  cart = s.items.map(it=>{ const pp=state.products.find(x=>x.id===it.id); return {id:it.id,name:it.name,size:it.size,color:it.color,price:it.price,cost:(it.cost!=null?it.cost:(pp?pp.cost:0)),qty:it.qty}; });
+  editingInvoice=invoice;
+  setDiscType('rs'); $('discVal').value=s.discount||0;
+  $('custName').value=s.customer||''; $('custPhone').value=s.phone||'';
+  go('sale'); renderCart(); renderSaleProducts();
+  toast('Bill edit mode: '+invoice,'info');
+}
+function cancelEdit(){
+  editingInvoice=null; cart=[];
+  $('custName').value=''; $('custPhone').value=''; $('discVal').value=0;
+  renderCart(); renderSaleProducts(); toast('Edit cancel','info');
+}
+function updateSale(){
+  if(!editingInvoice) return;
+  if(!cart.length){ toast('Bill mein kam az kam ek item hona chahiye','err'); return; }
+  const s=state.sales.find(x=>x.invoice===editingInvoice);
+  if(!s){ toast('Bill nahi mila','err'); editingInvoice=null; renderCart(); return; }
+  const oldQ={}; s.items.forEach(it=>{ oldQ[it.id]=(oldQ[it.id]||0)+it.qty; });
+  const newQ={}; cart.forEach(c=>{ newQ[c.id]=(newQ[c.id]||0)+c.qty; });
+  const ids=Object.keys(Object.assign({},oldQ,newQ));
+  // stock check for any increased quantity
+  for(let k=0;k<ids.length;k++){
+    const id=ids[k]; const delta=(newQ[id]||0)-(oldQ[id]||0);
+    if(delta>0){ const p=state.products.find(x=>x.id===id); const avail=p?p.qty:0; if(delta>avail){ toast('Stock kam hai: '+(p?p.name:id)+' (sirf '+avail+' available)','err'); return; } }
+  }
+  // apply stock delta (negative delta returns stock)
+  ids.forEach(id=>{ const delta=(newQ[id]||0)-(oldQ[id]||0); const p=state.products.find(x=>x.id===id); if(p) p.qty=Math.max(0,p.qty-delta); });
+  const t=cartTotals();
+  s.items=cart.map(c=>({id:c.id,name:c.name,size:c.size,color:c.color,price:c.price,cost:(c.cost!=null?c.cost:0),qty:c.qty}));
+  s.subtotal=t.sub; s.discount=t.disc; s.tax=t.tax; s.total=t.total;
+  s.customer=$('custName').value.trim(); s.phone=$('custPhone').value.trim();
+  s.editedAt=Date.now();
+  saveAll();
+  const inv=editingInvoice; editingInvoice=null;
+  cart=[]; $('custName').value=''; $('custPhone').value=''; $('discVal').value=0; if($('cashRecv'))$('cashRecv').value=''; renderCart(); renderSaleProducts();
+  showSlip(buildSaleSlip(s),'Updated Bill — '+inv);
+  toast('Bill updated · '+inv,'ok');
+}
+
+/* ============================================================
+   SLIP GENERATION
+   ============================================================ */
+function buildSaleSlip(s){
+  const st=state.settings;
+  let items=s.items.map(it=>`
+    <div class="slip-it"><div class="it-top"><span>${escapeHtml(it.name)}</span><span>${money(it.price*it.qty)}</span></div>
+    <div class="it-sub"><span>${it.size}${it.color?' · '+escapeHtml(it.color):''}</span><span>${it.qty} × ${money(it.price)}</span></div></div>`).join('');
+  return `<div class="slip">
+    <div class="slip-top">
+      <div class="sname">${escapeHtml(st.shopName)}</div>
+      <div class="stag">${escapeHtml(st.tagline)}</div>
+      <div class="saddr">${escapeHtml(st.address)}<br>Ph: ${escapeHtml(st.phone)}</div>
+    </div>
+    <div class="slip-meta"><span>Invoice</span><b>${s.invoice}</b></div>
+    <div class="slip-meta"><span>Date</span><b>${fmtDate(s.date)} ${fmtTime(s.date)}</b></div>
+    <div class="slip-meta"><span>Customer</span><b>${escapeHtml(s.customer||'Walk-in')}</b></div>
+    ${s.phone?`<div class="slip-meta"><span>Phone</span><b>${escapeHtml(s.phone)}</b></div>`:''}
+    ${s.userName?`<div class="slip-meta"><span>Served by</span><b>${escapeHtml(s.userName)}</b></div>`:''}
+    <div class="slip-items">${items}</div>
+    <div class="slip-sum">
+      <div class="sl"><span>Subtotal</span><span>${money(s.subtotal)}</span></div>
+      ${s.discount>0?`<div class="sl"><span>Discount</span><span>- ${money(s.discount)}</span></div>`:''}
+      ${s.tax>0?`<div class="sl"><span>Tax (${st.taxRate}%)</span><span>${money(s.tax)}</span></div>`:''}
+      <div class="sl gt"><span>TOTAL</span><span>${money(s.total)}</span></div>
+      ${s.cash?`<div class="sl"><span>Cash</span><span>${money(s.cash)}</span></div><div class="sl"><span>Change</span><span>${money(s.change||0)}</span></div>`:''}
+    </div>
+    <div class="slip-policy"><b>Return Policy</b>${escapeHtml(st.returnPolicy)}</div>
+    <div class="slip-thanks"><div class="ur">Thank You!</div>Please visit again</div>
+    <div class="slip-foot">Powered by Yasir Garments POS · Keep this slip for returns</div>
+  </div>`;
+}
+function buildReturnSlip(r){
+  const st=state.settings;
+  let items=r.items.map(it=>`
+    <div class="slip-it"><div class="it-top"><span>${escapeHtml(it.name)}</span><span>${money(it.price*it.qty)}</span></div>
+    <div class="it-sub"><span>Returned</span><span>${it.qty} × ${money(it.price)}</span></div></div>`).join('');
+  return `<div class="slip ret">
+    <div class="slip-top">
+      <div class="sname">${escapeHtml(st.shopName)}</div>
+      <div class="stag">${escapeHtml(st.tagline)}</div>
+      <div class="ret-tag">RETURN / REFUND</div>
+    </div>
+    <div class="slip-meta"><span>Return #</span><b>${r.rid}</b></div>
+    <div class="slip-meta"><span>Orig. Invoice</span><b>${r.invoice}</b></div>
+    <div class="slip-meta"><span>Date</span><b>${fmtDate(r.date)} ${fmtTime(r.date)}</b></div>
+    <div class="slip-meta"><span>Reason</span><b>${escapeHtml(r.reason||'-')}</b></div>
+    <div class="slip-items">${items}</div>
+    <div class="slip-sum"><div class="sl gt"><span>REFUND</span><span>${money(r.refund)}</span></div></div>
+    <div class="slip-policy">${r.restocked?'Items returned to stock.':'Items NOT restocked (damaged/used).'}</div>
+    <div class="slip-thanks"><div class="ur">Thank You</div>Sorry for the inconvenience</div>
+    <div class="slip-foot">Refund processed · Yasir Garments POS</div>
+  </div>`;
+}
+function showSlip(html,title){
+  lastSlipHTML=html;
+  $('slipTitle').textContent=title||'Slip';
+  $('slipPreview').innerHTML=html;
+  $('print-root').innerHTML=html;
+  openModal('slipModal');
+}
+function viewSaleSlip(invoice){ const s=state.sales.find(x=>x.invoice===invoice); if(s)showSlip(buildSaleSlip(s),'Sale Slip — '+invoice); }
+function applyPaperSetting(){
+  const w=(state.settings.paperWidth||'58');
+  document.body.classList.toggle('thermal', w!=='a4');
+  // on-screen preview width so the slip looks like the real receipt roll
+  const previewPx = w==='58' ? '220px' : (w==='80' ? '300px' : '340px');
+  document.documentElement.style.setProperty('--slip-w', previewPx);
+  const ps=$('pageStyle'); if(!ps) return;
+  if(w==='a4'){
+    // normal full-page printer: keep a tidy receipt-width block, centered
+    ps.textContent='@page{size:A4;margin:14mm} @media print{#print-root .slip{width:80mm !important;max-width:80mm !important;margin:0 auto !important}}';
+  } else {
+    // thermal roll: lock the slip to the exact paper width so it never stretches,
+    // even if the printer ignores the @page size
+    ps.textContent='@page{size:'+w+'mm auto;margin:0} @media print{body.thermal #print-root .slip{width:'+w+'mm !important;max-width:'+w+'mm !important;margin:0 !important}}';
+  }
+}
+function printSlip(){ applyPaperSetting(); $('print-root').innerHTML=lastSlipHTML; window.print(); }
+
+/* ============================================================
+   RETURNS
+   ============================================================ */
+let currentReturnSale=null;
+function findInvoice(){
+  const inv=($('retInvoice').value||'').trim().toUpperCase();
+  if(!inv){ toast('Invoice number likhein','err'); return; }
+  const s=state.sales.find(x=>x.invoice.toUpperCase()===inv);
+  if(!s){ $('retResult').innerHTML=`<div class="alert alert-warn"><svg viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg><div>Is invoice number ki koi sale nahi mili. Dobara check karein.</div></div>`; return; }
+  currentReturnSale=s;
+  renderReturnItems(s);
+}
+function renderReturnItems(s){
+  const days=Math.floor((Date.now()-s.date)/86400000);
+  const within=days<=state.settings.returnDays;
+  let banner = within
+    ? `<div class="alert alert-ok"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Eligible for return.</b> Sale ${days} din pehle hui (policy: ${state.settings.returnDays} din ke andar).</div></div>`
+    : `<div class="alert alert-warn"><svg viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg><div><b>Outside return window.</b> Sale ${days} din pehle hui, policy sirf ${state.settings.returnDays} din ki hai. Aap phir bhi manager override se process kar sakte hain.</div></div>`;
+
+  let rows=s.items.map(it=>{
+    const already=returnedQty(s.invoice,it.id);
+    const max=it.qty-already;
+    const disabled=max<=0;
+    return `<div class="ret-item" data-pid="${it.id}">
+      <div class="ri-info"><div class="ri-name">${escapeHtml(it.name)}</div>
+        <div class="ri-meta">${it.size} · ${money(it.price)} · Bought ${it.qty}${already?` · Already returned ${already}`:''}</div></div>
+      ${disabled?'<span class="badge b-out">Returned</span>':
+        `<div class="qty-step"><button onclick="retStep('${it.id}',-1,${max})">−</button><span id="ret-${it.id}">0</span><button onclick="retStep('${it.id}',1,${max})">+</button></div>`}
+    </div>`;
+  }).join('');
+
+  $('retResult').innerHTML=`${banner}
+    <div class="card card-pad">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div><div class="prod-name" style="font-size:15px">${s.invoice}</div><div class="prod-meta">${escapeHtml(s.customer||'Walk-in')} · ${fmtDate(s.date)}</div></div>
+        <button class="btn btn-soft btn-sm" onclick="viewSaleSlip('${s.invoice}')">Original slip</button>
+      </div>
+      <div style="margin:10px 0">${rows}</div>
+      <div class="field"><label>Return reason</label>
+        <select id="retReason"><option>Size issue</option><option>Defective / damaged</option><option>Customer changed mind</option><option>Wrong item</option><option>Other</option></select>
+      </div>
+      <label class="chip" style="cursor:pointer;margin-bottom:14px"><input type="checkbox" id="retRestock" checked style="margin-right:4px"> Return items back to stock</label>
+      <div class="sum-line total" style="border:none;padding:0;margin-bottom:14px"><span>Refund total</span><span id="retRefund">${money(0)}</span></div>
+      <button class="btn btn-primary btn-block" style="padding:13px" onclick="processReturn(${within})">Process Return &amp; Print Slip</button>
+    </div>`;
+  window.retQ={}; updateRefund();
+}
+function retStep(pid,d,max){
+  window.retQ=window.retQ||{};
+  let q=(window.retQ[pid]||0)+d;
+  q=Math.max(0,Math.min(q,max));
+  window.retQ[pid]=q; $('ret-'+pid).textContent=q; updateRefund();
+}
+/* Jo total customer ne asal me pay kiya (discount + tax) uska hissa refund ho */
+function saleFactor(s){ return (s && s.subtotal>0) ? s.total/s.subtotal : 1; }
+function updateRefund(){
+  let total=0; const s=currentReturnSale; if(!s)return;
+  const f=saleFactor(s);
+  Object.keys(window.retQ||{}).forEach(pid=>{ const it=s.items.find(i=>i.id===pid); if(it) total+=Math.round(it.price*f)*window.retQ[pid]; });
+  if($('retRefund'))$('retRefund').textContent=money(total);
+}
+function processReturn(within){
+  const s=currentReturnSale; if(!s)return;
+  const items=[]; let refund=0; const f=saleFactor(s);
+  Object.keys(window.retQ||{}).forEach(pid=>{ const q=window.retQ[pid]; if(q>0){ const it=s.items.find(i=>i.id===pid); const unit=Math.round(it.price*f); items.push({id:pid,name:it.name,qty:q,price:unit}); refund+=unit*q; } });
+  if(!items.length){ toast('Kam az kam ek item select karein','err'); return; }
+  if(!within && !confirm('Yeh return window se bahar hai. Manager override ke saath process karein?'))return;
+  const restock=$('retRestock').checked;
+  const ret={ rid:"RET-"+(state.counters.ret++), date:Date.now(), invoice:s.invoice,
+    items, refund, reason:$('retReason').value, restocked:restock };
+  if(restock) items.forEach(it=>{ const p=state.products.find(x=>x.id===it.id); if(p)p.qty+=it.qty; });
+  state.returns.push(ret); saveAll();
+  $('retResult').innerHTML=''; $('retInvoice').value=''; currentReturnSale=null;
+  showSlip(buildReturnSlip(ret),'Return Slip — '+ret.rid);
+  toast('Return processed · '+money(refund)+' refund','ok');
+}
+
+/* ============================================================
+   REPORTS
+   ============================================================ */
+function setDateRange(preset){
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const fmt=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  let from='',to='';
+  if(preset==='today'){ from=fmt(today); to=fmt(today); }
+  else if(preset==='yest'){ const y=new Date(today); y.setDate(y.getDate()-1); from=fmt(y); to=fmt(y); }
+  else if(preset==='7'){ const s=new Date(today); s.setDate(s.getDate()-6); from=fmt(s); to=fmt(today); }
+  else if(preset==='month'){ from=fmt(new Date(now.getFullYear(),now.getMonth(),1)); to=fmt(today); }
+  else if(preset==='year'){ from=fmt(new Date(now.getFullYear(),0,1)); to=fmt(today); }
+  else { from=''; to=''; } // 'all'
+  $('repFrom').value=from; $('repTo').value=to;
+  document.querySelectorAll('#dateFilter .dp').forEach(b=>b.classList.toggle('on', b.dataset.range===preset));
+  renderReports();
+}
+function customDate(){ document.querySelectorAll('#dateFilter .dp').forEach(b=>b.classList.remove('on')); renderReports(); }
+function renderReports(){
+  const from=$('repFrom').value?new Date($('repFrom').value).getTime():0;
+  const to=$('repTo').value?new Date($('repTo').value).getTime()+86400000:Infinity;
+  const sales=state.sales.filter(s=>s.date>=from&&s.date<to);
+  const rets=state.returns.filter(r=>r.date>=from&&r.date<to);
+  const revenue=sales.reduce((a,s)=>a+s.total,0);
+  const refunds=rets.reduce((a,r)=>a+r.refund,0);
+  const itemsSold=sales.reduce((a,s)=>a+s.items.reduce((x,i)=>x+i.qty,0),0);
+  let profit=0; sales.forEach(s=>s.items.forEach(it=>{ let cost; if(it.cost!=null){ cost=it.cost; } else { const p=state.products.find(x=>x.id===it.id); cost=p?p.cost:0; } profit+=(it.price-cost)*it.qty; }));
+
+  let h=`<div class="grid stat-grid first-head" style="margin-top:0">
+    ${stat('tint-mint','<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>','Gross Sales',money(revenue),sales.length+' invoices')}
+    ${stat('tint-peach','<path d="M9 14 4 9l5-5M4 9h11a5 5 0 0 1 5 5v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>','Refunds',money(refunds),rets.length+' returns')}
+    ${stat('tint-brand','<path d="M3 4h2l2.4 12.3a2 2 0 0 0 2 1.7h7.7a2 2 0 0 0 2-1.6L22 8H6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>','Net Sales',money(revenue-refunds),itemsSold+' items sold')}
+    ${stat('tint-gold','<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>','Est. Profit',money(profit),'sale − cost')}
+  </div>`;
+
+  // best sellers
+  const tally={};
+  sales.forEach(s=>s.items.forEach(it=>{ tally[it.id]=tally[it.id]||{name:it.name,qty:0,rev:0}; tally[it.id].qty+=it.qty; tally[it.id].rev+=it.price*it.qty; }));
+  const best=Object.values(tally).sort((a,b)=>b.qty-a.qty).slice(0,6);
+
+  h+=`<div class="grid" style="grid-template-columns:1fr 1fr;align-items:start;margin-top:18px">`;
+  h+=`<div><div class="section-head" style="margin-top:0"><h3>Best Sellers</h3></div>`;
+  if(best.length){
+    h+=`<div class="table-wrap"><table><thead><tr><th>Product</th><th class="num">Sold</th><th class="num">Revenue</th></tr></thead><tbody>`;
+    best.forEach(b=>h+=`<tr><td class="prod-name">${escapeHtml(b.name)}</td><td class="num"><b>${b.qty}</b></td><td class="num">${money(b.rev)}</td></tr>`);
+    h+=`</tbody></table></div>`;
+  } else h+=emptyBox('No sales in range','Date range badal kar dekhein.');
+  h+=`</div>`;
+
+  // low stock
+  const low=state.products.filter(p=>p.qty<=p.reorder).sort((a,b)=>a.qty-b.qty).slice(0,6);
+  h+=`<div><div class="section-head" style="margin-top:0"><h3>Reorder List</h3></div>`;
+  if(low.length){
+    h+=`<div class="table-wrap"><table><thead><tr><th>Product</th><th class="num">Qty</th><th>Status</th></tr></thead><tbody>`;
+    low.forEach(p=>h+=`<tr><td class="prod-name">${escapeHtml(p.name)}<div class="prod-meta">${p.category} · ${p.size}</div></td><td class="num">${p.qty}</td><td>${stockBadge(p.qty,p.reorder)}</td></tr>`);
+    h+=`</tbody></table></div>`;
+  } else h+=`<div class="card card-pad" style="text-align:center;color:var(--mint);padding:28px"><p style="font-weight:600">Stock levels OK ✓</p></div>`;
+  h+=`</div></div>`;
+
+  // sales history
+  h+=`<div class="section-head"><h3>Sales History</h3><div class="spacer"></div><button class="btn btn-ghost btn-sm" onclick="exportCSV('sales')"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Export CSV</button></div>`;
+  if(sales.length){
+    h+=`<div class="table-wrap"><table><thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th class="num">Items</th><th class="num">Total</th><th></th></tr></thead><tbody>`;
+    sales.slice().reverse().forEach(s=>{
+      h+=`<tr><td class="prod-name">${s.invoice}</td><td>${fmtDate(s.date)}</td><td>${escapeHtml(s.customer||'Walk-in')}</td><td class="num">${s.items.reduce((a,i)=>a+i.qty,0)}</td><td class="num"><b>${money(s.total)}</b></td><td class="num">${myRole()==='admin'?`<button class="btn btn-ghost btn-sm" onclick="editSale('${s.invoice}')">Edit</button> `:''}<button class="btn btn-soft btn-sm" onclick="viewSaleSlip('${s.invoice}')">Slip</button></td></tr>`;
+    });
+    h+=`</tbody></table></div>`;
+  } else h+=emptyBox('No sales in this range','');
+
+  // returns history
+  if(rets.length){
+    h+=`<div class="section-head"><h3>Returns History</h3></div><div class="table-wrap"><table><thead><tr><th>Return #</th><th>Invoice</th><th>Date</th><th>Reason</th><th class="num">Refund</th></tr></thead><tbody>`;
+    rets.slice().reverse().forEach(r=>h+=`<tr><td class="prod-name">${r.rid}</td><td>${r.invoice}</td><td>${fmtDate(r.date)}</td><td>${escapeHtml(r.reason)}</td><td class="num"><b>${money(r.refund)}</b></td></tr>`);
+    h+=`</tbody></table></div>`;
+  }
+
+  $('reportsBody').innerHTML=h;
+}
+
+/* ---------- CSV export ---------- */
+function downloadFile(name,content,type){
+  const blob=new Blob([content],{type:type||'text/plain'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url);
+}
+function csvRow(arr){ return arr.map(v=>{ v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }).join(',')+'\n'; }
+function exportCSV(type){
+  let csv='';
+  if(type==='inventory'){
+    csv=csvRow(['Product ID','Name','Category','Size','Colour','Cost','Price','Quantity','Reorder Level']);
+    state.products.forEach(p=>csv+=csvRow([p.id,p.name,p.category,p.size,p.color,p.cost,p.price,p.qty,p.reorder]));
+    downloadFile('yasir-inventory.csv',csv,'text/csv'); 
+  } else {
+    csv=csvRow(['Invoice','Date','Time','Customer','Phone','Cashier','Items','Subtotal','Discount','Tax','Total']);
+    state.sales.forEach(s=>{ const items=s.items.map(i=>i.qty+'x '+i.name+' ('+i.size+')').join(' | ');
+      csv+=csvRow([s.invoice,fmtDate(s.date),fmtTime(s.date),s.customer||'Walk-in',s.phone||'',s.userName||'',items,s.subtotal,s.discount,s.tax,s.total]); });
+    downloadFile('yasir-sales.csv',csv,'text/csv');
+  }
+  toast('CSV downloaded','ok');
+}
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+function renderSettings(){
+  const s=state.settings;
+  $('setName').value=s.shopName; $('setTag').value=s.tagline; $('setAddr').value=s.address;
+  $('setPhone').value=s.phone; $('setCurr').value=s.currency; $('setTax').value=s.taxRate;
+  $('setRetDays').value=s.returnDays; $('setRetText').value=s.returnPolicy; $('setSheet').value=s.sheetUrl;
+  $('setPaper').value=s.paperWidth||'58';
+}
+function saveSettings(){
+  Object.assign(state.settings,{
+    shopName:$('setName').value.trim()||'Yasir Garments', tagline:$('setTag').value.trim(),
+    address:$('setAddr').value.trim(), phone:$('setPhone').value.trim(),
+    currency:$('setCurr').value.trim()||'Rs', taxRate:+$('setTax').value||0,
+    returnDays:+$('setRetDays').value||0, returnPolicy:$('setRetText').value.trim(), sheetUrl:$('setSheet').value.trim(),
+    paperWidth:$('setPaper').value||'58'
+  });
+  saveAll(); updateBadges(); applyPaperSetting(); toast('Settings saved','ok');
+}
+function exportBackup(){ downloadFile('yasir-backup-'+new Date().toISOString().slice(0,10)+'.json', JSON.stringify({products:state.products,sales:state.sales,returns:state.returns,settings:state.settings,counters:state.counters},null,2),'application/json'); toast('Backup downloaded','ok'); }
+function importBackup(file){
+  if(!file)return; const r=new FileReader();
+  r.onload=e=>{ try{ const d=JSON.parse(e.target.result);
+    if(d.products)state.products=d.products; if(d.sales)state.sales=d.sales; if(d.returns)state.returns=d.returns;
+    if(d.settings)state.settings=Object.assign({},DEFAULT_SETTINGS,d.settings); if(d.counters)state.counters=d.counters;
+    saveAll(); renderSettings(); updateBadges(); toast('Backup restored','ok');
+  }catch(err){ toast('Invalid backup file','err'); } };
+  r.readAsText(file);
+}
+function resetAll(){
+  if(!confirm('Saara data delete ho jayega (products, sales, returns). Pakka?'))return;
+  if(!confirm('Yeh action wapis nahi ho sakta. Confirm again.'))return;
+  state.products=[]; state.sales=[]; state.returns=[]; state.counters={invoice:1001,product:1,ret:5001};
+  saveAll(); updateBadges(); toast('All data cleared','info'); go('dashboard');
+}
+
+/* ============================================================
+   GOOGLE SHEETS SYNC
+   ============================================================ */
+function captureSheetUrlFromField(){
+  const f=$('setSheet');
+  if(f && f.value.trim() && f.value.trim()!==state.settings.sheetUrl){
+    state.settings.sheetUrl=f.value.trim(); Store.set('yg_settings',state.settings); updateBadges();
+  }
+}
+async function syncToSheets(manual){
+  captureSheetUrlFromField();
+  const url=state.settings.sheetUrl;
+  if(!url){ if(manual)toast('Pehle Web App URL paste karein','err'); return; }
+  if(!navigator.onLine){ Store.set('yg_pending',true); setSyncStatus(); if(manual)toast('Aap offline hain — net aate hi auto-sync ho jayega','info'); return; }
+  setSyncStatus('syncing');
+  if(manual)toast('Syncing to Google Sheets…','info');
+  try{
+    const res=await fetch(url,{ method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({ action:'sync', products:state.products, sales:state.sales, returns:state.returns, settings:state.settings, users:state.users }) });
+    const data=await res.json();
+    if(data.ok){ Store.set('yg_pending',false); Store.set('yg_lastsync',Date.now()); setSyncStatus(); if(manual)toast('Google Sheet updated ✓','ok'); }
+    else { setSyncStatus(); if(manual)toast('Sheet error: '+(data.error||'unknown'),'err'); }
+  }catch(err){ Store.set('yg_pending',true); setSyncStatus(); if(manual)toast('Connection failed. URL check karein / internet on karein.','err'); }
+}
+async function restoreFromSheets(){
+  captureSheetUrlFromField();
+  const url=state.settings.sheetUrl;
+  if(!url){ toast('Pehle Web App URL paste karein','err'); return; }
+  if(!confirm('Google Sheet ka data load karein? Mojooda local data replace ho jayega.'))return;
+  toast('Loading from Google Sheets…','info');
+  try{
+    const res=await fetch(url,{ method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'load'}) });
+    const data=await res.json();
+    if(data.ok && data.data){
+      const d=data.data;
+      if(d.products)state.products=d.products; if(d.sales)state.sales=d.sales; if(d.returns)state.returns=d.returns;
+      if(d.counters)state.counters=d.counters;
+      if(Array.isArray(d.users))state.users=d.users;
+      saveAll(); updateBadges();
+      if(sessionUserId && !currentUser()){ sessionUserId=null; Store.set('yg_session',null); }
+      applyRoleUI();
+      toast('Data loaded from Sheet ✓','ok');
+      if(!currentUser() && state.users.length){ showAuth(); } else { go('dashboard'); }
+    } else toast('Sheet me data nahi mila','err');
+  }catch(err){ toast('Connection failed','err'); }
+}
+
+/* ---------- Sync status + offline-first ---------- */
+function ensureSyncPill(){
+  if($('syncPill'))return;
+  const p=document.createElement('div');
+  p.id='syncPill';
+  p.style.cssText='position:fixed;z-index:200;bottom:14px;right:14px;display:none;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;font:600 12px/1 "Plus Jakarta Sans",system-ui,sans-serif;box-shadow:0 6px 20px rgba(49,42,53,.14);background:#fff;border:1px solid var(--border);color:var(--ink-soft);cursor:pointer';
+  p.title='Tap to sync now';
+  p.onclick=()=>{ if(state.settings.sheetUrl) syncToSheets(true); else go('settings'); };
+  document.body.appendChild(p);
+}
+function setSyncStatus(force){
+  ensureSyncPill();
+  const p=$('syncPill'); if(!p)return;
+  const dot=c=>'<span style="width:8px;height:8px;border-radius:50%;background:'+c+';display:inline-block;flex:0 0 auto"></span>';
+  if(!state.settings.sheetUrl){ p.style.display='none'; return; }
+  p.style.display='flex';
+  if(!navigator.onLine){ p.innerHTML=dot('#DE8159')+'Offline · saved locally'; return; }
+  if(force==='syncing'){ p.innerHTML=dot('#4C97B6')+'Syncing…'; return; }
+  if(Store.get('yg_pending',false)){ p.innerHTML=dot('#C79A3B')+'Pending changes'; return; }
+  p.innerHTML=dot('#3FA57C')+'Online · Synced';
+}
+window.addEventListener('online',()=>{ setSyncStatus(); if(state.settings.sheetUrl && Store.get('yg_pending',false)) syncToSheets(false); });
+window.addEventListener('offline',()=>setSyncStatus());
+
+/* On launch: push if there are unsynced local changes, else pull latest from other devices */
+async function bootSync(){
+  setSyncStatus();
+  if(!state.settings.sheetUrl || !navigator.onLine) return;
+  if(Store.get('yg_pending',false)){ syncToSheets(false); return; }
+  try{
+    const res=await fetch(state.settings.sheetUrl,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'load'})});
+    const data=await res.json();
+    if(data.ok && data.data){
+      const d=data.data;
+      if(d.products)state.products=d.products; if(d.sales)state.sales=d.sales; if(d.returns)state.returns=d.returns; if(d.counters)state.counters=d.counters;
+      if(Array.isArray(d.users))state.users=d.users;
+      Store.set('yg_products',state.products);Store.set('yg_sales',state.sales);Store.set('yg_returns',state.returns);Store.set('yg_counters',state.counters);Store.set('yg_users',state.users);
+      Store.set('yg_lastsync',Date.now());
+      if(sessionUserId && !currentUser()){ sessionUserId=null; Store.set('yg_session',null); showAuth(); }
+      applyRoleUI(); updateBadges(); renderDashboard();
+    }
+  }catch(e){}
+  setSyncStatus();
+}
+
+/* ---------- Modal helpers ---------- */
+function openModal(id){ $(id).classList.add('open'); }
+function closeModal(id){ $(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o)o.classList.remove('open'); }));
+
+/* ---------- Boot ---------- */
+updateBadges();
+applyPaperSetting();
+if(sessionUserId && !currentUser()){ sessionUserId=null; Store.set('yg_session',null); }
+applyRoleUI();
+setSyncStatus();
+if(currentUser()){ go(defaultView()); }
+else { renderDashboard(); showAuth(); }
+bootSync();
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('service-worker.js').catch(()=>{}); });
+}
+</script>
+</body>
+</html>
